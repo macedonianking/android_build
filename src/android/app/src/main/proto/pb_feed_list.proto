@@ -1,0 +1,27 @@
+
+syntax = "proto2";
+package com.oppo.main.build.pb.iflow;
+
+option java_package = "com.oppo.main.build.pb.iflow";
+option java_outer_classname = "FeedsList";
+
+message Tab {
+  required int32 type = 1;
+  optional string f = 2;
+}
+
+message ItemData {
+  required string sname = 1;
+  required string packageid = 2;
+}
+
+message DataItem {
+  required int32 datatype = 1;
+  required ItemData itemdata = 2;
+}
+
+message ResponsePB {
+  repeated DataItem data = 1;
+  required bool hasNextPage = 2;
+  required string dirtag = 3;
+}

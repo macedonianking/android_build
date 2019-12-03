@@ -1,0 +1,117 @@
+if (is_android) {
+  if (!defined(default_android_sdk_root)) {
+    default_android_sdk_root = getenv("ANDROID_SDK_HOME")
+    default_android_sdk_version = "23"
+    default_android_sdk_build_tools_version = "29.0.0"
+  }
+
+  if (!defined(default_android_ndk_root)) {
+    default_android_ndk_root = getenv("ANDROID_NDK_HOME")
+  }
+
+  if (!defined(default_android_keystore_path)) {
+    default_android_keystore_path = "//build/android/gn/android.jks"
+    default_android_keystore_name = "androidkey"
+    default_android_keystore_password = "android"
+  }
+
+  declare_args() {
+    # android sdk主目录
+    android_sdk_root = default_android_sdk_root
+
+    # 编译使用的sdk的版本
+    android_sdk_version = default_android_sdk_version
+
+    # android编译工具使用的版本
+    android_sdk_build_tools_version = default_android_sdk_build_tools_version
+
+    # 默认的版本号
+    android_default_version_code = "1"
+
+    # 默认的版本名
+    android_default_version_name = "1.0.0"
+
+    # 秘钥逻辑
+    android_keystore_path = default_android_keystore_path
+
+    # 秘钥名称
+    android_keystore_name = default_android_keystore_name
+
+    # 秘钥密码
+    android_keystore_password = default_android_keystore_password
+
+    # android ndk
+    android_ndk_root = default_android_ndk_root
+
+    # Enables verbose proguard output (summaries and unfiltered output).
+    proguard_verbose = false
+  }
+
+  if (host_os == "linux") {
+    android_host_os = "linux"
+  } else if (host_os == "win") {
+    android_host_os = "windows"
+  } else {
+    assert(false, "Platform not supported")
+  }
+
+  if (host_cpu == "x86") {
+    android_host_arch = "x86"
+  } else if (host_cpu == "x64") {
+    android_host_arch = "x86_64"
+  } else {
+    assert(false, "Platform not supported")
+  }
+
+  # android sdk所在的目录
+  android_sdk = "$android_sdk_root/platforms/android-$android_sdk_version"
+
+  # $android_sdk_home/tools目录
+  andorid_sdk_tools = "$android_sdk_root/tools"
+
+  # 编译工具的目录
+  android_sdk_build_tools =
+      "$android_sdk_root/build-tools/$android_sdk_build_tools_version"
+
+  android_sdk_jar = "$android_sdk/android.jar"
+
+  zipalign_path = "$android_sdk_build_tools/zipalign"
+
+  _android_api_level = 16
+  arm_android_sysroot_subdir =
+      "platforms/android-${_android_api_level}/arch-arm"
+  x86_android_sysroot_subdir =
+      "platforms/android-${_android_api_level}/arch-x86"
+
+  # 使用的工具链的版本
+  _android_toolchain_version = "4.9"
+  arm_android_toolchain_root = "$android_ndk_root/toolchains/llvm/prebuilt/${android_host_os}-${android_host_arch}"
+
+  # 当前使用的工具链
+  if (current_cpu == "arm") {
+    android_toolchain_target = "armv7a-linux-androideabi${_android_api_level}"
+    _binary_prefix = "arm-linux-androideabi"
+    android_toolchain_root = "$arm_android_toolchain_root"
+  } else {
+    assert(false, "Platform not supported")
+  }
+
+  # 工具链的设置
+  android_toolchain_prefix = "$android_toolchain_root/bin/"
+  android_toolchain_binary_prefix =
+      "$android_toolchain_root/bin/${_binary_prefix}-"
+
+  if (current_cpu == "arm") {
+    import("//build/config/arm.gni")
+    if (arm_version < 7) {
+      android_app_abi = "armeabi"
+    } else {
+      android_app_abi = "armeabi-v7a"
+    }
+    android_app_secondary_abi = "arm64-v8a"
+  } else if (current_cpu == "arm64") {
+    android_app_abi = "arm64-v8a"
+  } else {
+    assert(false, "Unknown Android ABI: " + current_cpu)
+  }
+}

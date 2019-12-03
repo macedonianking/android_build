@@ -1,0 +1,5 @@
+if (target_os == "android" || current_os == "android") {
+  declare_args() {
+    arm_version = 7
+  }
+}

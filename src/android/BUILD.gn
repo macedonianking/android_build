@@ -1,0 +1,5 @@
+group("main") {
+  deps = [
+    "app/src/main:main",
+  ]
+}

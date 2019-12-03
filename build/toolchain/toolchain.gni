@@ -1,0 +1,23 @@
+if (is_posix) {
+  arlib_extension = ".a"
+  shlib_extension = ".so"
+} else if (is_win) {
+  arlib_extension = ".a"
+  shlib_extension = ".dll"
+} else {
+  assert("Platform not supported")
+}
+
+if (is_posix) {
+  shlib_prefix = "lib"
+} else if (is_win) {
+  shlib_prefix = "lib"
+} else {
+  assert("Platform not supported")
+}
+
+if (is_posix) {
+  executable_extension = ""
+} else if (is_win) {
+  executable_extension = ".exe"
+}

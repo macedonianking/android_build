@@ -1,0 +1,29 @@
+import("//build/toolchain/gcc_toolchain.gni")
+
+template("gcc_toolchain_helper") {
+  assert(defined(invoker.toolchain_cpu))
+
+  forward_variables_from(invoker,
+                         [
+                           "toolchain_cpu",
+                           "toolchain_os",
+                         ])
+  if (!defined(toolchain_os)) {
+    toolchain_os = "linux"
+  }
+
+  gcc_toolchain(target_name) {
+    cc = "gcc"
+    cxx = "g++"
+    ld = "gcc"
+    ar = "ar"
+  }
+}
+
+gcc_toolchain_helper("x86") {
+  toolchain_cpu = "x86"
+}
+
+gcc_toolchain_helper("x64") {
+  toolchain_cpu = "x64"
+}

@@ -1,0 +1,26 @@
+if (current_toolchain == host_toolchain) {
+  executable("ijar") {
+    sources = [
+      "classfile.cc",
+      "common.h",
+      "ijar.cc",
+      "mapped_file.h",
+      "zip.cc",
+      "zip.h",
+    ]
+    if (is_win) {
+      sources += [
+        "cygwin.cc",
+        "mapped_file_windows.cc",
+      ]
+    } else {
+      sources += [ "mapped_file_unix.cc" ]
+    }
+
+    include_dirs = [ "//" ]
+    libs = [
+      "stdc++",
+      "z",
+    ]
+  }
+}

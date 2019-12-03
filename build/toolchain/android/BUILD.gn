@@ -1,0 +1,37 @@
+import("//build/config/android/config.gni")
+import("//build/toolchain/gcc_toolchain.gni")
+
+template("gcc_toolchain_helper") {
+  forward_variables_from(invoker,
+                         [
+                           "toolchain_prefix",
+                           "toolchain_binary_prefix",
+                           "toolchain_cpu",
+                           "toolchain_os",
+                         ])
+  if (!defined(invoker.toolchain_prefix)) {
+    toolchain_prefix = invoker.android_toolchain_prefix
+  }
+  if (!defined(invoker.toolchain_binary_prefix)) {
+    toolchain_binary_prefix = invoker.android_toolchain_binary_prefix
+  }
+  if (defined(invoker.toolchain_target)) {
+    _toolchain_target = invoker.toolchain_target
+  } else {
+    _toolchain_target = android_toolchain_target
+  }
+
+  gcc_toolchain("clang_${target_name}") {
+    cc = "${toolchain_prefix}clang"
+    cxx = "${toolchain_prefix}clang++"
+    ld = "${toolchain_prefix}clang"
+    ar = "${toolchain_binary_prefix}ar"
+
+    toolchain_target = "-target ${_toolchain_target}"
+    toolchain_os = "android"
+  }
+}
+
+gcc_toolchain_helper("arm") {
+  toolchain_cpu = "arm"
+}

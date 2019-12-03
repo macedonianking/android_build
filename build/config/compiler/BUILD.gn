@@ -1,0 +1,25 @@
+config("compiler") {
+  cflags = []
+  cflags_c = []
+  cflags_cc = []
+  defines = []
+  ldflags = []
+  libs = []
+  configs = []
+
+  if (is_win) {
+    configs += [ "//build/config/win:compiler" ]
+  }
+  if (is_android) {
+    configs += [ "//build/config/android:compiler" ]
+  }
+  if (is_linux) {
+    configs += [ "//build/config/linux:compiler" ]
+  }
+  if (is_mac) {
+    configs += [ "//build/config/mac:compiler" ]
+  }
+
+  cflags_c += [ "-std=gnu11" ]
+  cflags_cc += [ "-std=c++0x" ]
+}

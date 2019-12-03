@@ -1,0 +1,7 @@
+if (host_os == "win") {
+  host_executable_suffix = ".exe"
+  host_shell_suffix = ".bat"
+} else {
+  host_executable_suffix = ""
+  host_shell_suffix = ""
+}

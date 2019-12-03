@@ -1,0 +1,88 @@
+import("//build/config/android/config.gni")
+import("//build/config/android/internal_rules.gni")
+import("//build/config/android/rules.gni")
+
+android_assets("main_assets") {
+  asset_renaming_sources = [ "assets/hot_sites.json" ]
+  asset_renaming_destinations = [ "hot_sites.json" ]
+  disable_asset_compression = true
+}
+
+android_resources("main_java_res") {
+  android_manifest = "AndroidManifest.xml"
+  deps = [
+    "//src/android/platform:platform_res",
+  ]
+  resource_dirs = [ "res" ]
+}
+
+android_aidl("book_aidl") {
+  sources = [
+    "aidl/com/oppo/main/build/aidl/book/BookInterface.aidl",
+  ]
+
+  interface_file = "aidl/com/oppo/main/build/aidl/book/Book.aidl"
+  import_include = "java"
+}
+
+proto_java_library("main_protoc_java") {
+  proto_path = "proto"
+  sources = [
+    "$proto_path/pb_feed_list.proto",
+  ]
+}
+
+android_library("main_java") {
+  deps = [
+    ":main_java_res",
+    ":main_protoc_java",
+    "//src/android/platform:platform_java",
+  ]
+  srcjar_deps = [ ":book_aidl" ]
+
+  supports_android = true
+  requires_android = true
+
+  java_files = [
+    "./java/com/oppo/main/build/MainActivity.java",
+    "./java/com/oppo/main/build/util/Views.java",
+    "./java/com/oppo/main/build/entity/Book.java",
+  ]
+}
+
+android_apk("content_shell_apk") {
+  apk_name = "content_shell"
+  android_manifest = "AndroidManifest.xml"
+  deps = [
+    ":main_assets",
+    ":main_java",
+    "//third_party/android_protobuf:protobuf_nano_javalib",
+  ]
+
+  enable_multidex = true
+
+  # proguard_enabled = true
+  # proguard_configs = [
+  #   "${android_sdk_root}/tools/proguard/proguard-android.txt",
+  #   "proguard-rules.pro",
+  # ]
+}
+
+java_cpp_template("build_config") {
+  package_name = "com/oppo/demo"
+
+  sources = [
+    "//src/android/java/template/BuildConfig.template",
+  ]
+  defines = [
+    "NDEBUG",
+    "ENABLE_MULTIDEX",
+  ]
+}
+
+group("main") {
+  deps = [
+    ":build_config",
+    ":content_shell_apk",
+  ]
+}

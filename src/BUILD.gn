@@ -1,0 +1,8 @@
+group("main") {
+  deps = [
+    "main/app:main",
+  ]
+  if (target_os == "android") {
+    deps += [ "android:main" ]
+  }
+}

@@ -1,0 +1,23 @@
+import("//build/toolchain/gcc_toolchain.gni")
+
+gcc_toolchain("mingw") {
+  cc = "gcc"
+  cxx = "g++"
+  ar = "ar"
+  ld = "gcc"
+  nm = "nm"
+  readelf = "readelf"
+  strip = "strip"
+  compiler_prefix =
+      "C:\share\mingw-w64\i686-8.1.0-posix-dwarf-rt_v6-rev0\mingw32\bin\\"
+}
+
+gcc_toolchain("gcc") {
+  cc = "gcc"
+  cxx = "g++"
+  ar = "ar"
+  ld = "gcc"
+  nm = "nm"
+  readelf = "readelf"
+  strip = "strip"
+}

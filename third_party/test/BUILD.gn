@@ -1,0 +1,6 @@
+executable("test") {
+  sources = [
+    "main.cc",
+  ]
+  libs = [ "stdc++" ]
+}

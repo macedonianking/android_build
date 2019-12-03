@@ -1,0 +1,22 @@
+config("debug") {
+  defines = [ "_DEBUG" ]
+  cflags = [ "-g" ]
+}
+
+config("release") {
+  defines = [ "NDEBUG" ]
+}
+
+config("default_libs") {
+  if (is_android) {
+    libs = [
+      "dl",
+      "m",
+    ]
+  }
+}
+
+config("shared_library_config") {
+  cflags = [ "-fPIC" ]
+  ldflags = [ "-shared" ]
+}

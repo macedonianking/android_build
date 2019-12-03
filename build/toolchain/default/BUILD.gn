@@ -1,0 +1,88 @@
+toolchain("mingw") {
+  lib_switch = "-l"
+  lib_dir_switch = "-L"
+
+  # compile c source file
+  tool("cc") {
+    depfile = "{{output}}.d"
+    command = "gcc -MMD -MF {{output}}.d {{cflags}} {{cflags_c}} {{include_dirs}} {{defines}} -c {{source}} -o {{output}}"
+    description = "CC {{source}}"
+    outputs = [
+      "{{source_out_dir}}/{{label_name}}_cc_{{source_name_part}}.o",
+    ]
+  }
+
+  # compile c++ source file
+  tool("cxx") {
+    depfile = "{{output}}.d"
+    command = "gcc -MMD -MF {{output}}.d {{cflags}} {{cflags_cc}} {{include_dirs}} {{defines}} -c {{source}} -o {{output}}"
+    description = "CXX {{source}}"
+    outputs = [
+      "{{source_out_dir}}/{{label_name}}_cxx_{{source_name_part}}.o",
+    ]
+  }
+
+  # compile asm source file
+  tool("asm") {
+    depfile = "{{output}}.d"
+    command = "gcc -MMD -MF {{output}}.d {{asmflags}} {{include_dirs}} {{defines}} -S {{source}} -o {{output}}"
+    description = "ASM {{source}}"
+    outputs = [
+      "{{source_out_dir}}/{{label_name}}_asm_{{source_name_part}}.o",
+    ]
+  }
+
+  # static library.
+  tool("alink") {
+    command = "cmd /c rm -rf {{output}} && ar crs {{output}} {{inputs}}"
+    description = "ALINK {{label}}"
+    outputs = [
+      "{{output_dir}}/{{target_output_name}}{{output_extension}}",
+    ]
+    restat = true
+
+    default_output_dir = "."
+    default_output_extension = ".a"
+    output_prefix = "lib"
+  }
+
+  # share library.
+  tool("solink") {
+    command =
+        "gcc -shared {{ldflags}} -o {{output}} {{inputs}} {{solibs}} {{libs}}"
+    description = "SOLINK {{label}}"
+    outputs = [
+      "{{output_dir}}/{{target_output_name}}{{output_extension}}",
+    ]
+    restat = true
+
+    default_output_dir = "."
+    default_output_extension = ".dll"
+    output_prefix = "lib"
+  }
+
+  # link executable program.
+  tool("link") {
+    command = "gcc {{ldflags}} -o {{output}} {{inputs}} {{solibs}} {{libs}}"
+    description = "LINK {{label}}"
+    outputs = [
+      "{{output_dir}}/{{target_output_name}}{{output_extension}}",
+    ]
+    restat = true
+
+    default_output_dir = "."
+    default_output_extension = ".exe"
+  }
+
+  # stamp tool
+  tool("stamp") {
+    command = "touch {{output}}"
+    description = "STAMP {{output}}"
+  }
+
+  # copy tool
+  tool("copy") {
+    command = "cp -rf {{source}} {{output}}"
+    description = "COPY {{label}}"
+  }
+}

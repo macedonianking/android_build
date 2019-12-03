@@ -1,0 +1,21 @@
+executable("main") {
+  sources = [
+    "src/chapter2/chapter2.c",
+    "src/endian.c",
+    "src/main.c",
+  ]
+
+  cflags_c = [
+    "-Wall",
+    "-Werror",
+  ]
+  include_dirs = [
+    "src",
+    "//src/main",
+  ]
+
+  deps = [
+    "//src/main/hello_shared:hello",
+    "//src/main/hello_static:hello",
+  ]
+}

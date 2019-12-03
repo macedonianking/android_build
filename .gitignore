@@ -1,0 +1,8 @@
+/.ninja_deps
+/.ninja_log
+/out
+/build/android/__pycache__/*.pyc
+*.pyc
+.ropeproject
+/.idea
+/.vscode/settings.json

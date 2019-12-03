@@ -1,0 +1,33 @@
+if (current_toolchain == host_toolchain) {
+  copy("android_protoc") {
+    if (host_os == "win") {
+      _executable_suffix = ".exe"
+    } else {
+      _executable_suffix = ""
+    }
+
+    _output_path = "$root_out_dir/android_protoc${_executable_suffix}"
+
+    if (host_os == "win") {
+      _tool_source_path = "win/protoc.exe"
+    } else {
+      assert(false, "$host_os not supported.")
+    }
+
+    sources = [
+      _tool_source_path,
+    ]
+    outputs = [
+      _output_path,
+    ]
+  }
+}
+
+if (current_os == "android") {
+  import("//build/config/android/config.gni")
+  import("//build/config/android/rules.gni")
+
+  android_java_prebuilt("protobuf_nano_javalib") {
+    jar_path = "protobuf-java-3.11.0.jar"
+  }
+}
