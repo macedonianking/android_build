@@ -7,8 +7,8 @@ import platform
 import subprocess
 
 
-from android import build_utils
-from android import jar
+import jar
+from util import build_utils
 
 
 def normalize_paths(paths):

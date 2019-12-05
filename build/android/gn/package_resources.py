@@ -13,7 +13,7 @@ import shutil
 import re
 import zipfile
 
-from android import build_utils
+from util import build_utils
 
 DENSITY_SPLITS = {
     'hdpi': (

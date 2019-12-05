@@ -3,8 +3,8 @@
 import argparse
 import sys
 
-from android import build_utils
-from android.gn import proguard_util
+import proguard_util
+from util import build_utils
 
 
 def create_parser():

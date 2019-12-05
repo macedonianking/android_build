@@ -6,7 +6,7 @@ import os
 import zipfile
 import re
 
-from android import build_utils
+from util import build_utils
 
 
 def create_parser():

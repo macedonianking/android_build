@@ -6,8 +6,8 @@ import os
 import tempfile
 import shutil
 
-from android import build_utils
-from android.pylib import constants
+from pylib import constants
+from util import build_utils
 
 
 def create_parser() -> argparse.ArgumentParser:

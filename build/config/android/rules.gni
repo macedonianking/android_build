@@ -79,7 +79,7 @@ template("java_cpp_template") {
                              "data_deps",
                              "public_deps",
                            ])
-    script = "//build/android/gcc_preprocesses.py"
+    script = "//build/android/gn/gcc_preprocesses.py"
     if (defined(invoker.inputs)) {
       inputs = invoker.inputs
     }
@@ -819,7 +819,7 @@ template("proto_java_library") {
   _protoc_target_name = "${_template_name}__protoc_java"
   action(_protoc_target_name) {
     srcjar_path = "$target_gen_dir/$target_name.srcjar"
-    script = "//build/protoc_java.py"
+    script = "//build/android/gn/protoc_java.py"
 
     _base_dir = "$target_gen_dir/$target_name/proto_java_library"
 

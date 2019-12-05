@@ -16,7 +16,7 @@ import sys
 import tempfile
 import zipfile
 
-from android import md5_check
+from util import md5_check
 
 _ROOT_DIR = os.path.abspath(os.path.join(__file__, ".."))
 

@@ -3,7 +3,7 @@
 import os
 import re
 
-from android import build_utils
+from util import build_utils
 
 
 class _ProguardOututFilter(object):

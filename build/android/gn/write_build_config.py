@@ -5,7 +5,7 @@ import os
 import xml.dom.minidom
 import itertools
 
-from android import build_utils
+from util import build_utils
 
 _ROOT_TYPES = ("android_apk", "deps_dex", "java_binary", "resources_rewriter")
 _RESOURCES_TYPES = ("android_resources", "android_assets")

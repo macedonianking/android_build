@@ -3,7 +3,7 @@
 import os
 import subprocess
 
-from android import build_utils
+from util import build_utils
 
 
 def jar(class_files, classes_dir, jar_path, manifest_file=None, predicate=None):

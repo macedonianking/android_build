@@ -5,7 +5,7 @@ import subprocess
 import os
 import shutil
 
-from android import build_utils
+from util import build_utils
 
 
 def create_parser() -> argparse.ArgumentParser:

@@ -6,8 +6,8 @@ import os
 import sys
 import jinja2
 
-from android import build_utils
-from android import host_paths
+import host_paths
+from util import build_utils
 
 
 class RecordingFileSystemLoader(jinja2.FileSystemLoader):

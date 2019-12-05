@@ -2,7 +2,7 @@
 
 import argparse
 
-from android import build_utils
+from util import build_utils
 
 
 def main():

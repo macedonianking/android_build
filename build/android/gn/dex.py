@@ -7,7 +7,7 @@ import json
 import subprocess
 import zipfile
 
-from android import build_utils
+from util import build_utils
 
 
 def create_parser() -> argparse.ArgumentParser:

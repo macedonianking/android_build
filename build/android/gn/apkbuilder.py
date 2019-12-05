@@ -8,7 +8,7 @@ import zipfile
 import os
 import itertools
 
-from android import build_utils
+from util import build_utils
 
 # Taken from aapt's Package.cpp:
 _NO_COMPRESS_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.gif', '.wav', '.mp2',

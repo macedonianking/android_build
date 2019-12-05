@@ -4,7 +4,7 @@ import argparse
 import sys
 import subprocess
 
-from android import build_utils
+from util import build_utils
 
 
 def create_parser():

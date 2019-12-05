@@ -100,7 +100,7 @@ template("write_build_config") {
       deps = []
     }
 
-    script = "//build/android/write_build_config.py"
+    script = "//build/android/gn/write_build_config.py"
     depfile = "$target_out_dir/$target_name.deps"
     sources = []
     inputs = []
@@ -538,7 +538,7 @@ template("compile_java") {
              ])
 
   action(_javac_target_name) {
-    script = "//build/android/javac.py"
+    script = "//build/android/gn/javac.py"
     depfile = "$target_gen_dir/$target_name.d"
     deps = _srcjar_deps
     if (defined(invoker.deps)) {
@@ -645,7 +645,7 @@ template("dex") {
 
       _base_dir = "${target_gen_dir}/$target_name/dex"
 
-      main_dex_rules = "//build/android/main_dex_classes.flags"
+      main_dex_rules = "//build/android/gn/main_dex_classes.flags"
       _proguard_jar_path = "//third_party/proguard/proguard-base-6.2.0.jar"
 
       outputs = [

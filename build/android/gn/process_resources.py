@@ -10,7 +10,7 @@ import collections
 from string import Template
 from jinja2 import Template
 
-from android import build_utils
+from util import build_utils
 
 TextSymbolsEntry = collections.namedtuple(
     "RTextEntry",
