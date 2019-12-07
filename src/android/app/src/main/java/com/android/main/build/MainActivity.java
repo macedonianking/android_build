@@ -1,4 +1,4 @@
-package com.oppo.main.build;
+package com.android.main.build;
 
 import android.app.Activity;
 import android.os.Bundle;

@@ -1,4 +1,4 @@
-package com.oppo.main.platform;
+package com.android.main.platform;
 
 
 import java.text.SimpleDateFormat;

@@ -18,6 +18,7 @@ if (current_toolchain == host_toolchain) {
     }
 
     include_dirs = [ "//" ]
+    ldflags = [ "-static" ]
     libs = [
       "stdc++",
       "z",

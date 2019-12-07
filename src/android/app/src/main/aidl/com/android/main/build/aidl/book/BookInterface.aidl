@@ -1,7 +1,7 @@
 // BookInterface.aidl
-package com.oppo.main.build.aidl.book;
+package com.android.main.build.aidl.book;
 
-import com.oppo.main.build.entity.Book;
+import com.android.main.build.entity.Book;
 
 // Declare any non-default types here with import statements
 

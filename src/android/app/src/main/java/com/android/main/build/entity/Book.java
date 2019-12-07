@@ -1,4 +1,4 @@
-package com.oppo.main.build.entity;
+package com.android.main.build.entity;
 
 import android.os.Parcel;
 import android.os.Parcelable;

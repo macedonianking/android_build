@@ -36,11 +36,11 @@ def add_depfile_option(parser: argparse.ArgumentParser):
     """
     parser.add_argument("--depfile",
                         help="Path to depfile. Must be specified as the target's "
-                        "first output.")
+                             "first output.")
     pass
 
 
-def check_options(args,  parser: argparse.ArgumentParser, required=None):
+def check_options(args, parser: argparse.ArgumentParser, required=None):
     """检查必须的选项
     """
     if not required:
@@ -110,7 +110,14 @@ def get_python_dependencies():
     """
     module_paths = [m.__file__ for m in sys.modules.values()
                     if m is not None and hasattr(m, "__file__")]
-    abs_module_paths = map(os.path.abspath, module_paths)
+    module_paths = []
+    for m in sys.modules.values():
+        if m and hasattr(m, "__file__") and m.__file__:
+            module_paths.append(m.__file__)
+            pass
+        pass
+    abs_module_paths = [os.path.normpath(os.path.abspath(path))
+                        for path in module_paths]
 
     non_sys_module_paths = [path for path in abs_module_paths
                             if path.startswith(_ROOT_DIR)]

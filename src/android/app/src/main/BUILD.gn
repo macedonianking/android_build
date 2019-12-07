@@ -18,10 +18,10 @@ android_resources("main_java_res") {
 
 android_aidl("book_aidl") {
   sources = [
-    "aidl/com/oppo/main/build/aidl/book/BookInterface.aidl",
+    "aidl/com/android/main/build/aidl/book/BookInterface.aidl",
   ]
 
-  interface_file = "aidl/com/oppo/main/build/aidl/book/Book.aidl"
+  interface_file = "aidl/com/android/main/build/aidl/book/Book.aidl"
   import_include = "java"
 }
 
@@ -44,9 +44,9 @@ android_library("main_java") {
   requires_android = true
 
   java_files = [
-    "./java/com/oppo/main/build/MainActivity.java",
-    "./java/com/oppo/main/build/util/Views.java",
-    "./java/com/oppo/main/build/entity/Book.java",
+    "./java/com/android/main/build/MainActivity.java",
+    "./java/com/android/main/build/util/Views.java",
+    "./java/com/android/main/build/entity/Book.java",
   ]
 }
 
@@ -69,7 +69,7 @@ android_apk("content_shell_apk") {
 }
 
 java_cpp_template("build_config") {
-  package_name = "com/oppo/demo"
+  package_name = "com/android/demo"
 
   sources = [
     "//src/android/java/template/BuildConfig.template",

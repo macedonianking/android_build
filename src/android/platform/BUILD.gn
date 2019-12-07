@@ -24,11 +24,11 @@ android_library("platform_java") {
     ":platform_res",
   ]
 
-  java_files = [ "src/main/java/com/oppo/main/platform/TimeHelper.java" ]
+  java_files = [ "src/main/java/com/android/main/platform/TimeHelper.java" ]
 }
 
 jinja_template("platform_manifest") {
   input = "templates/AndroidManifest.xml"
   output = "$target_gen_dir/$target_name/AndroidManifest.xml"
-  variables = [ "package_name=com.oppo.demo" ]
+  variables = [ "package_name=com.android.demo" ]
 }

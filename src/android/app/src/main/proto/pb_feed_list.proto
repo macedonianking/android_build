@@ -1,8 +1,8 @@
 
 syntax = "proto2";
-package com.oppo.main.build.pb.iflow;
+package com.android.main.build.pb.iflow;
 
-option java_package = "com.oppo.main.build.pb.iflow";
+option java_package = "com.android.main.build.pb.iflow";
 option java_outer_classname = "FeedsList";
 
 message Tab {
