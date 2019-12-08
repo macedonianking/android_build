@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import sys
 import os
-import platform
 import subprocess
-
+import sys
 
 import jar
 from util import build_utils
@@ -98,8 +96,12 @@ def _on_stale_md5(args, javac_cmd, java_files):
         pass
 
     glob = args.jar_excluded_classes
-    def includes_jar_predicate(x): return not build_utils.matches_glob(x, glob)
-    def excludes_jar_predicate(x): return build_utils.matches_glob(x, glob)
+
+    def includes_jar_predicate(x):
+        return not build_utils.matches_glob(x, glob)
+
+    def excludes_jar_predicate(x):
+        return build_utils.matches_glob(x, glob)
 
     jar.jar_directory(classes_dir, args.jar_path,
                       predicate=includes_jar_predicate)

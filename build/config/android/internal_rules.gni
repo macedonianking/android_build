@@ -17,6 +17,60 @@ if (is_debug) {
   android_configuration_name = "Debug"
 }
 
+# Generate a script in the output bin.java directory to run a java binary.
+#
+# Variables
+#   main_class: The class containing the program entry point.
+#   jar_path: The path to the jar to run.
+#   script_name: Name of the script to generate.
+#   build_config: Path to .build_config for the jar (contains classpath)
+#   wrapper_script_args: List of extra arguments to pass to the executable.
+template("java_binary_script") {
+  set_sources_assignment_filter([])
+  forward_variables_from(invoker, [ "testonly" ])
+
+  _main_class = invoker.main_class
+  _build_config = invoker.build_config
+  _jar_path = invoker.jar_path
+  _script_name = invoker.script_name
+
+  action(target_name) {
+    script = "//build/android/gn/create_java_binary_script.py"
+    depfile = "$target_gen_dir/$target_name.d"
+    java_script = "$root_build_dir/bin/$_script_name."
+    inputs = [
+      _build_config,
+    ]
+    outputs = [
+      depfile,
+      java_script,
+    ]
+    forward_variables_from(invoker, [ "deps" ])
+    _rebased_build_config = rebase_path(_build_config, root_build_dir)
+    args = [
+      "--depfile",
+      rebase_path(depfile, root_build_dir),
+      "--output",
+      rebase_path(java_script, root_build_dir),
+      "--classpath=@FileArg($_rebased_build_config:java:full_classpath)",
+      "--jar-path",
+      rebase_path(_jar_path, root_build_dir),
+      "--main-class",
+      _main_class,
+    ]
+    if (defined(invoker.wrapper_script_args)) {
+      args += [ "--" + invoker.wrapper_script_args ]
+    }
+    if (defined(invoker.bootclasspath)) {
+      inputs += [ invoker.bootclasspath ]
+      args += [
+        "--bootclasspath",
+        rebase_path(invoker.bootclasspath, root_build_dir),
+      ]
+    }
+  }
+}
+
 # The proguard process that will proguard archive to a single output.
 #
 # variables:
@@ -412,7 +466,7 @@ template("process_resources") {
   }
 }
 
-template("process_java_rebuilt") {
+template("process_java_prebuilt") {
   set_sources_assignment_filter([])
   forward_variables_from(invoker, [ "testonly" ])
 
@@ -477,6 +531,9 @@ template("process_java_rebuilt") {
 }
 
 template("compile_java") {
+  set_sources_assignment_filter([])
+  forward_variables_from(invoker, [ "testonly" ])
+
   assert(defined(invoker.java_files))
   assert(defined(invoker.build_config))
   assert(defined(invoker.jar_path))
@@ -484,6 +541,8 @@ template("compile_java") {
   _java_files = invoker.java_files
   _final_jar_path = invoker.jar_path
   _javac_jar_path = "$target_gen_dir/$target_name.javac.jar"
+  _process_prebuilt_jar_path =
+      "$target_gen_dir/$target_name.precess_prebuilt.jar"
   _final_ijar_path = get_path_info(_final_jar_path, "dir") + "/" +
                      get_path_info(_final_jar_path, "name") + ".interface.jar"
 
@@ -523,7 +582,7 @@ template("compile_java") {
   _rebased_jar_path = rebase_path(_javac_jar_path, root_build_dir)
 
   _javac_target_name = "${target_name}__javac"
-  _process_target_name = "${target_name}__process_prebuild"
+  _process_prebuilt_target_name = "${target_name}__process_prebuild"
   _ijar_target_name = "${target_name}_ijar"
   _final_target_name = target_name
 
@@ -535,6 +594,7 @@ template("compile_java") {
                "_srcjar_deps",
                "_java_srcjars",
                "_ijar_target_name",
+               "_process_prebuilt_jar_path",
              ])
 
   action(_javac_target_name) {
@@ -578,10 +638,7 @@ template("compile_java") {
     }
 
     foreach(e, _manifest_entries) {
-      args += [
-        "--manifest-entry",
-        e,
-      ]
+      args += [ "--manifest-entry=" + e ]
     }
 
     if (defined(invoker.java_dirs)) {
@@ -598,10 +655,14 @@ template("compile_java") {
     args += rebase_path(_java_files, root_build_dir)
   }
 
-  process_java_rebuilt(_process_target_name) {
+  process_java_prebuilt(_process_prebuilt_target_name) {
     build_config = _build_config
     input_jar_path = _javac_jar_path
     output_jar_path = _final_jar_path
+    if (defined(invoker.proguard_preprocess) && invoker.proguard_preprocess) {
+      proguard_preprocess = invoker.proguard_preprocess
+      proguard_config = invoker.proguard_config
+    }
     deps = [
       ":${_javac_target_name}",
     ]
@@ -611,14 +672,15 @@ template("compile_java") {
     input_jar = _final_jar_path
     output_jar = _final_ijar_path
     deps = [
-      ":$_process_target_name",
+      ":$_process_prebuilt_target_name",
     ]
   }
 
   group(_final_target_name) {
+    forward_variables_from(invoker, [ "visibility" ])
     public_deps = [
       ":$_ijar_target_name",
-      ":$_process_target_name",
+      ":$_process_prebuilt_target_name",
     ]
   }
 }
@@ -736,6 +798,9 @@ template("dex") {
 }
 
 template("java_library_impl") {
+  set_sources_assignment_filter([])
+  forward_variables_from(invoker, [ "testonly" ])
+
   assert(defined(invoker.java_files) || defined(invoker.srcjars) ||
          defined(invoker.srcjar_deps))
   _base_path = "$target_gen_dir/$target_name"
@@ -821,8 +886,13 @@ template("java_library_impl") {
   compile_java(_compile_java_target) {
     forward_variables_from(invoker,
                            [
+                             "alternative_android_sdk_ijar",
+                             "alternative_android_sdk_ijar_dep",
+                             "dist_jar_path",
                              "jar_excluded_patterns",
                              "manifest_entries",
+                             "proguard_config",
+                             "proguard_preprocess",
                            ])
 
     jar_path = _jar_path
@@ -833,6 +903,26 @@ template("java_library_impl") {
     supports_android = _supports_android
 
     deps = build_config_deps
+  }
+
+  if (defined(invoker.main_class)) {
+    _java_binary_script_target_name = "${_template_name}__java_binary_script"
+    _final_deps += [ ":$_java_binary_script_target_name" ]
+    java_binary_script(_java_binary_script_target_name) {
+      forward_variables_from(invoker,
+                             [
+                               "bootclasspath",
+                               "main_class",
+                               "wrapper_script_args",
+                             ])
+      build_config = _build_config
+      jar_path = _jar_path
+      script_name = _template_name
+      if (defined(invoker.wrapper_script_name)) {
+        script_name = invoker.wrapper_script_name
+      }
+      deps = build_config_deps
+    }
   }
 
   if (_supports_android) {
@@ -910,7 +1000,7 @@ template("java_prebuilt_impl") {
     }
   }
 
-  process_java_rebuilt(_process_jar_target_name) {
+  process_java_prebuilt(_process_jar_target_name) {
     visibility = [
       ":$_ijar_target_name",
       ":$_template_name",
@@ -944,6 +1034,28 @@ template("java_prebuilt_impl") {
     }
   }
 
+  if (defined(invoker.main_class)) {
+    _binary_script_target_name = "${_template_name}__java_binary_script"
+    java_binary_script(_binary_script_target_name) {
+      forward_variables_from(invoker,
+                             [
+                               "bootclasspath",
+                               "deps",
+                               "main_class",
+                             ])
+      if (!defined(deps)) {
+        deps = []
+      }
+      build_config = _build_config
+      jar_path = _jar_path
+      script_name = _template_name
+      if (defined(invoker.wrapper_script_args)) {
+        wrapper_script_args = invoker.wrapper_script_args
+      }
+      deps += [ ":$_build_config_target_name" ]
+    }
+  }
+
   group(_template_name) {
     public_deps = [
       ":$_build_config_target_name",
@@ -952,6 +1064,9 @@ template("java_prebuilt_impl") {
     ]
     if (_supports_android) {
       public_deps += [ ":$_dex_target_name" ]
+    }
+    if (defined(invoker.main_class)) {
+      public_deps += [ ":$_binary_script_target_name" ]
     }
   }
 }

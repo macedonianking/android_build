@@ -3,6 +3,9 @@ group("main") {
     "main/app:main",
   ]
   if (target_os == "android") {
-    deps += [ "android:main" ]
+    deps += [
+      "android:main",
+      "java/main:main_demo_java",
+    ]
   }
 }

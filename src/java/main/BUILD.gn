@@ -1,0 +1,6 @@
+import("//build/config/android/rules.gni")
+
+java_binary("main_demo_java") {
+  java_files = [ "src/com/android/build/main/demo/Main.java" ]
+  main_class = "com.android.build.main.demo.Main"
+}

@@ -351,7 +351,7 @@ def main():
         config["javac"] = {}
         pass
 
-    if args.type in ("java_library",):
+    if args.type in ("java_binary", "java_library"):
         config["javac"]["srcjars"] = [c["srcjar"]
                                       for c in direct_resources_deps]
     if args.type == "android_apk":
@@ -424,7 +424,9 @@ def main():
         config["javac"]["classpath"] = javac_classpath
         config["javac"]["interface_classpath"] = [as_interface_jar(path)
                                                   for path in javac_classpath]
-        config["javac"]["full_classpath"] = java_full_classpath
+        config["java"] = {
+            "full_classpath": java_full_classpath
+        }
 
     if args.type == "android_apk":
         dependency_jars = [c["jar_path"] for c in all_library_deps]
