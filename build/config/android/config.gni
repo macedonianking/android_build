@@ -1,7 +1,7 @@
 if (is_android) {
   if (!defined(default_android_sdk_root)) {
     default_android_sdk_root = getenv("ANDROID_SDK_HOME")
-    default_android_sdk_version = "23"
+    default_android_sdk_version = "29"
     default_android_sdk_build_tools_version = "29.0.2"
   }
 

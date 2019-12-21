@@ -162,7 +162,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--readelf-path",
                         help="Path to the toolchain's readelf")
 
-    # andorid_apk
+    # android_apk
     parser.add_argument("--apk-path")
     parser.add_argument("--incremental-apk-path")
     parser.add_argument("--incremental-install-script-path")
@@ -191,9 +191,9 @@ def _filter_unwanted_deps_configs(config_type, configs):
     """去掉错误的依赖类型
     """
     configs = [c for c in configs if c not in _ROOT_TYPES]
-    if config_type in _RESOURCES_TYPES:
-        configs = [c for c in configs
-                   if get_dep_config(c)["type"] in _RESOURCES_TYPES]
+    # if config_type in _RESOURCES_TYPES:
+    #     configs = [c for c in configs
+    #                if get_dep_config(c)["type"] in _RESOURCES_TYPES]
     return configs
 
 
@@ -276,7 +276,7 @@ def main():
 
     # 直接依赖
     direct_deps_config_paths = [c for c in possible_deps_config_paths
-                                if not c in unknown_deps]
+                                if c not in unknown_deps]
     direct_deps_config_paths = _filter_unwanted_deps_configs(args.type,
                                                              direct_deps_config_paths)
     deps = Deps(direct_deps_config_paths)

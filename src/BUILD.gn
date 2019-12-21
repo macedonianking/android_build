@@ -1,6 +1,7 @@
 group("main") {
   deps = [
     "main/app:main",
+    "test:main",
   ]
   if (target_os == "android") {
     deps += [

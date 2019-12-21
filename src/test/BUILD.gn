@@ -1,0 +1,25 @@
+action("main") {
+  script = "//build/android/gn/test_action.py"
+  depfile = "$target_gen_dir/$target_name.d"
+
+  input_txt = "main.txt"
+  sources = [
+    input_txt,
+  ]
+
+  output_txt = "$target_out_dir/$target_name.txt"
+  outputs = [
+    depfile,
+    output_txt,
+  ]
+
+  args = [
+    "--depfile",
+    rebase_path(depfile, root_build_dir),
+    "--input",
+    rebase_path(input_txt, root_build_dir),
+    "--output",
+    rebase_path(output_txt, root_build_dir),
+    "\$",
+  ]
+}

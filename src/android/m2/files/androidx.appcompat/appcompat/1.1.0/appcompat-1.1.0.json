@@ -1,0 +1,58 @@
+{
+    "deps_info": {
+        "groupId": "androidx.appcompat",
+        "artifactId": "appcompat",
+        "version": "1.1.0",
+        "packaging": "aar",
+        "dependencies": [
+            {
+                "groupId": "androidx.annotation",
+                "artifactId": "annotation",
+                "version": "1.1.0",
+                "scope": "compile"
+            },
+            {
+                "groupId": "androidx.core",
+                "artifactId": "core",
+                "version": "1.1.0",
+                "type": "aar",
+                "scope": "compile"
+            },
+            {
+                "groupId": "androidx.cursoradapter",
+                "artifactId": "cursoradapter",
+                "version": "1.0.0",
+                "type": "aar",
+                "scope": "compile"
+            },
+            {
+                "groupId": "androidx.fragment",
+                "artifactId": "fragment",
+                "version": "1.1.0",
+                "type": "aar",
+                "scope": "compile"
+            },
+            {
+                "groupId": "androidx.appcompat",
+                "artifactId": "appcompat-resources",
+                "version": "1.1.0",
+                "type": "aar",
+                "scope": "compile"
+            },
+            {
+                "groupId": "androidx.drawerlayout",
+                "artifactId": "drawerlayout",
+                "version": "1.0.0",
+                "type": "aar",
+                "scope": "compile"
+            },
+            ,
+            {
+                "groupId": "androidx.collection",
+                "artifactId": "collection",
+                "version": "1.0.0",
+                "scope": "compile"
+            }
+        ]
+    }
+}

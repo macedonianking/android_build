@@ -319,23 +319,20 @@ template("android_assets") {
 }
 
 template("java_group") {
-  _base_path = "$target_gen_dir/$target_name"
-  _build_config = _base_path + ".build_config"
+  _build_config = "$target_gen_dir/${target_name}.build_config"
 
   _build_config_target_name = "${target_name}__build_config"
   write_build_config(_build_config_target_name) {
+    forward_variables_from(invoker, [ "deps" ])
     type = "group"
-    deps = []
-    if (defined(invoker.deps)) {
-      deps += invoker.deps
-    }
     build_config = _build_config
   }
 
   group(target_name) {
-    deps = []
     forward_variables_from(invoker, "*")
-
+    if (!defined(deps)) {
+      deps = []
+    }
     deps += [ ":$_build_config_target_name" ]
   }
 }

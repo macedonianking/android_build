@@ -1,0 +1,14 @@
+import("//build/config/android/config.gni")
+import("//build/config/android/internal_rules.gni")
+import("//build/config/android/rules.gni")
+
+android_resources("appcompat_resources_resources") {
+  resource_dirs = [ "res" ]
+  android_manifest = "AndroidManifest.xml"
+}
+
+java_group("appcompat_resources") {
+  deps = [
+    ":appcompat_resources_resources",
+  ]
+}
