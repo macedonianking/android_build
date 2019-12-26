@@ -305,6 +305,10 @@ def _md5_for_path(path):
     return md5.hexdigest()
 
 
+def md5_for_path(path):
+    return _md5_for_path(path)
+
+
 def _compute_inline_md5(iterables):
     """计算MD5
     """
@@ -312,6 +316,10 @@ def _compute_inline_md5(iterables):
     for item in iterables:
         md5.update(str(item).encode(encoding="utf-8"))
     return md5.hexdigest()
+
+
+def compute_inline_md5(iterables):
+    return _compute_inline_md5(iterables)
 
 
 def _is_zip_file(path):

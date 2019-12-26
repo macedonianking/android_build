@@ -4,9 +4,14 @@ import sys
 import argparse
 import os
 
+from util import md5_metadata
+
 
 def main():
-    print(os.path.pathsep)
+    data = md5_metadata.Metadata()
+    data.add_output_file_in_directory("src", "*")
+    with open("test.json", "w") as fp:
+        data.to_file(fp)
     pass
 
 
