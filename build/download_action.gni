@@ -1,0 +1,28 @@
+template("download_action") {
+  assert(defined(invoker.url))
+  assert(defined(invoker.output))
+
+  action(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "deps",
+                             "data_deps",
+                             "public_deps",
+                             "visibility",
+                             "testonly",
+                             "inputs",
+                           ])
+    script = "//build/gn_download.py"
+
+    outputs = [
+      invoker.output,
+    ]
+
+    args = [
+      "--output",
+      rebase_path(invoker.output, root_build_dir),
+      "--url",
+      invoker.url,
+    ]
+  }
+}

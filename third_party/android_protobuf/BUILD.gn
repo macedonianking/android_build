@@ -9,7 +9,7 @@ if (current_toolchain == host_toolchain) {
     _output_path = "$root_out_dir/android_protoc${_executable_suffix}"
 
     if (host_os == "win") {
-      _tool_source_path = "win/protoc.exe"
+      _tool_source_path = "win/protoc"
     } else {
       assert(false, "$host_os not supported.")
     }
