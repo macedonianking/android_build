@@ -73,7 +73,8 @@ class Metadata:
         return ret
 
     def output_tag(self, path):
-        return self._output_files.get(path)
+        item = self._output_files.get(path)
+        return (item["mtime"], item["file_size"]) if item else None
 
     def outputs_md5(self):
         if self._outputs_md5 is None:
@@ -108,4 +109,3 @@ class Changes:
         if self._old_metadata.inputs_md5() != self._new_metadata.inputs_md5():
             return False
         return True
-

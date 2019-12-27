@@ -3,15 +3,13 @@
 import sys
 import argparse
 import os
+import fnmatch
 
 from util import md5_metadata
 
 
 def main():
-    data = md5_metadata.Metadata()
-    data.add_output_file_in_directory("src", "*")
-    with open("test.json", "w") as fp:
-        data.to_file(fp)
+    print(fnmatch.fnmatch("res/a/b.txt", "res/*"))
     pass
 
 

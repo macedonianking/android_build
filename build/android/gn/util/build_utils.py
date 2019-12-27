@@ -208,13 +208,13 @@ def remove_subtree(base_dir):
     pass
 
 
-def find_in_directory(dir_path, filename_filter):
+def find_in_directory(directory, filename_filter):
     """在文件夹中查找文件
     """
     files = []
-    for root, _, filenames in os.walk(dir_path):
-        fitlered_names = fnmatch.filter(filenames, filename_filter)
-        files.extend([os.path.join(root, name) for name in fitlered_names])
+    for root, _, filenames in os.walk(os.path.normpath(directory)):
+        filtered_names = fnmatch.filter(filenames, filename_filter)
+        files.extend([os.path.join(root, name) for name in filtered_names])
     return files
 
 
@@ -320,11 +320,6 @@ def call_and_write_dep_file_if_stale(function,
 
 
 def do_zip(inputs, output, base_dir=None):
-    """
-    :param inputs:
-    :param output:
-    :return:
-    """
     input_paths = []
     for item in inputs:
         if isinstance(item, str):
