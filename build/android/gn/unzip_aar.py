@@ -60,42 +60,46 @@ def on_stale_md5(aar_path, output_dir, zip_map):
     pass
 
 
-def main(argv):
-    args = parse_args(argv)
-    build_utils.make_directory(args.output_dir)
+def unzip_aar(aar_path, output_dir, output_path):
+    build_utils.make_directory(output_dir)
 
     aar_map = {}
-    with zipfile.ZipFile(args.aar_path, mode="r") as in_zip:
+    with zipfile.ZipFile(aar_path, mode="r") as in_zip:
         for name in in_zip.namelist():
             if name.endswith("/"):
                 continue
             if build_utils.matches_glob(name, AAR_EXTRACT_GLOB):
-                aar_map[name] = os.path.normpath(os.path.join(args.output_dir, name))
+                aar_map[name] = os.path.normpath(os.path.join(output_dir, name))
 
     output_file_set = set(aar_map.values())
-    for path in (os.path.normpath(x) for x in build_utils.find_in_directory(args.output_dir, "*")):
+    for path in (os.path.normpath(x) for x in build_utils.find_in_directory(output_dir, "*")):
         if path not in output_file_set:
             os.remove(path)
 
     old_metadata = None
-    if os.path.isfile(args.output_path):
+    if os.path.isfile(output_path):
         try:
-            with open(args.output_path) as file_obj:
+            with open(output_path) as file_obj:
                 old_metadata = md5_metadata.Metadata.from_file(file_obj)
         except Exception:
-            os.remove(args.output_path)
+            os.remove(output_path)
 
     new_metadata = md5_metadata.Metadata()
-    new_metadata.add_input_file(args.aar_path)
+    new_metadata.add_input_file(aar_path)
 
     zip_map = create_extract_list(old_metadata, new_metadata, aar_map)
-    on_stale_md5(args.aar_path, args.output_dir, zip_map)
+    on_stale_md5(aar_path, output_dir, zip_map)
 
-    new_metadata.add_output_file_in_directory(args.output_dir, "*")
-    build_utils.make_directory(os.path.dirname(args.output_path))
-    with open(args.output_path, mode="w") as file_obj:
+    new_metadata.add_output_file_in_directory(output_dir, "*")
+    build_utils.make_directory(os.path.dirname(output_path))
+    with open(output_path, mode="w") as file_obj:
         new_metadata.to_file(file_obj)
+    pass
 
+
+def main(argv):
+    args = parse_args(argv)
+    unzip_aar(args.aar_path, args.output_dir, args.output_path)
     pass
 
 

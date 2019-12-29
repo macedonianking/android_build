@@ -1,0 +1,17 @@
+{
+    "target_list": [
+        {
+            "name": "appcompat_resources__aar",
+            "targets": [
+                {
+                    "name": "appcompat_resources__aar_resources",
+                    "type": "android_resources",
+                    "resource_dirs": [
+                        "res"
+                    ],
+                    "android_manifest": "AndroidManifest.xml"
+                }
+            ]
+        }
+    ]
+}

@@ -19,6 +19,13 @@ template("android_aar") {
                                  "resource_dirs",
                                  "android_manifest",
                                ])
+      } else if (_target_config.type == "java_prebuilt") {
+        forward_variables_from(_target_config,
+                               [
+                                 "jar_path",
+                                 "requires_android",
+                                 "supports_android",
+                               ])
       } else {
         assert(false, "type ${_target_config.type} is not supported.")
       }
@@ -34,4 +41,37 @@ template("android_aar") {
 
 android_aar("appcompat_resources") {
   build_config = "appcompat_resources__build_config.json"
+}
+
+template("android_aar_source") {
+  defined(invoker.aar_path)
+
+  _template_name = target_name
+  _base_path = "//src/m2/build/files/${target_name}__android_aar_source"
+
+  _rebased_aar_path = rebase_path(invoker.aar_path, root_build_dir)
+  _aar_output_dir = _base_path + "__aar_output_dir"
+  _aar_target_path = _base_path + ".json"
+
+  exec_script("//build/android/gn/generate_aar_targets.py",
+              [
+                "--name",
+                _template_name,
+                "--aar-path",
+                _rebased_aar_path,
+                "--aar-output-dir",
+                rebase_path(_aar_output_dir, root_build_dir),
+                "--build-config",
+                rebase_path(_aar_target_path, root_build_dir),
+                "--target-directory",
+                rebase_path(".", root_build_dir),
+              ])
+
+  android_aar(_template_name) {
+    build_config = _aar_target_path
+  }
+}
+
+android_aar_source("appcompat_resources_aar_source") {
+  aar_path = "appcompat-resources-1.1.0.aar"
 }

@@ -182,14 +182,19 @@ def temp_dir():
         shutil.rmtree(dirname)
 
 
-def make_directory(dir_path):
-    os.makedirs(dir_path, exist_ok=True)
+def make_directory(path):
+    os.makedirs(path, exist_ok=True)
     pass
 
 
-def delete_directory(dirpath):
-    if os.path.exists(dirpath):
-        shutil.rmtree(dirpath)
+def make_directory_for_file(path):
+    make_directory(os.path.dirname(path))
+    pass
+
+
+def delete_directory(directory):
+    if os.path.exists(directory):
+        shutil.rmtree(directory)
     pass
 
 
