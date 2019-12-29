@@ -13,6 +13,9 @@ class MavenArtifact(object):
         self.version = version
         pass
 
+    def __str__(self):
+        return "%s:%s:%s" % (self.group_id, self.artifact_id, self.version)
+
     def __eq__(self, other):
         if not isinstance(other, MavenArtifact):
             return False
@@ -70,12 +73,14 @@ class PomParser:
             if node.nodeType not in (node.ELEMENT_NODE,):
                 continue
 
-            if node.tagName in ("groupId", "artifactId", "version", "name", "description", "url"):
+            if node.tagName in ("groupId", "artifactId", "version", "packaging", "name", "description", "url"):
                 config[node.tagName] = node.firstChild.data
             elif node.tagName == "dependencies":
                 dependencies = []
                 dependencies.extend(PomParser.parse_dependencies(node))
                 config[node.tagName] = dependencies
+            elif node.tagName == "properties":
+                config["properties"] = PomParser.parse_properties(node)
             pass
         if "dependencies" not in config:
             config["dependencies"] = []
@@ -103,3 +108,13 @@ class PomParser:
                 config[node.tagName] = node.firstChild.data
             pass
         return config
+
+    @staticmethod
+    def parse_properties(element):
+        properties = {}
+        for node in element.childNodes:
+            if node.nodeType != node.ELEMENT_NODE:
+                continue
+            if node.firstChild is not None:
+                properties[node.tagName] = node.firstChild.data
+        return properties

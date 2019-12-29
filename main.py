@@ -1,15 +1,13 @@
 # -*- encoding: utf-8 -*-
 
-import sys
-import argparse
-import os
-import fnmatch
+import re
 
-from util import md5_metadata
+from string import Template
 
 
 def main():
-    print(fnmatch.fnmatch("res/a/b.txt", "res/*"))
+    pattern = "hello world ${hello.world}  world"
+    re.sub
     pass
 
 
