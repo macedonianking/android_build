@@ -37,7 +37,8 @@ template("java_binary_script") {
   action(target_name) {
     script = "//build/android/gn/create_java_binary_script.py"
     depfile = "$target_gen_dir/$target_name.d"
-    java_script = "$root_build_dir/bin/$_script_name."
+    java_script = "$root_build_dir/bin/$_script_name.py"
+
     inputs = [
       _build_config,
     ]
@@ -47,6 +48,7 @@ template("java_binary_script") {
     ]
     forward_variables_from(invoker, [ "deps" ])
     _rebased_build_config = rebase_path(_build_config, root_build_dir)
+
     args = [
       "--depfile",
       rebase_path(depfile, root_build_dir),
@@ -58,9 +60,11 @@ template("java_binary_script") {
       "--main-class",
       _main_class,
     ]
+
     if (defined(invoker.wrapper_script_args)) {
       args += [ "--" + invoker.wrapper_script_args ]
     }
+
     if (defined(invoker.bootclasspath)) {
       inputs += [ invoker.bootclasspath ]
       args += [

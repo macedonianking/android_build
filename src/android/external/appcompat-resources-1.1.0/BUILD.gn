@@ -2,13 +2,36 @@ import("//build/config/android/config.gni")
 import("//build/config/android/internal_rules.gni")
 import("//build/config/android/rules.gni")
 
-android_resources("appcompat_resources_resources") {
-  resource_dirs = [ "res" ]
-  android_manifest = "AndroidManifest.xml"
+template("android_aar") {
+  assert(defined(invoker.build_config))
+
+  _template_name = target_name
+  _build_config = read_file(invoker.build_config, "json")
+  _final_deps = []
+
+  foreach(_target_config, _build_config.target_list) {
+    print(_target_config.name)
+
+    target(_target_config.type, _target_config.name) {
+      if (_target_config.type == "android_resources") {
+        forward_variables_from(_target_config,
+                               [
+                                 "resource_dirs",
+                                 "android_manifest",
+                               ])
+      } else {
+        assert(false, "type ${_target_config.type} is not supported.")
+      }
+    }
+
+    _final_deps += [ ":${_target_config.name}" ]
+  }
+
+  java_group(_template_name) {
+    deps = _final_deps
+  }
 }
 
-java_group("appcompat_resources") {
-  deps = [
-    ":appcompat_resources_resources",
-  ]
+android_aar("appcompat_resources") {
+  build_config = "appcompat_resources__build_config.json"
 }

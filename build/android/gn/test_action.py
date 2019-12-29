@@ -16,13 +16,12 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    print(args.options)
 
-    build_utils.touch(args.depfile)
+    build_utils.touch(args.output)
 
-    # if args.depfile:
-    #     build_utils.write_dep_file(args.depfile,
-    #                                build_utils.get_python_dependencies())
+    if args.depfile:
+        build_utils.write_dep_file(args.depfile,
+                                   build_utils.get_python_dependencies())
     pass
 
 
