@@ -467,15 +467,6 @@ def download_maven(args, context, m2_home, root_artifacts):
             pass
 
 
-def to_gn_absolute_path(root_path, path):
-    name = os.path.relpath(os.path.abspath(path), root_path)
-    return "//" + name.replace("\\", "/")
-
-
-def to_gn_target_name(artifact):
-    return artifact.replace("-", "_").replace(":", "_").replace(".", "_")
-
-
 def write_build_config(target_configs, sorted_targets, m2_home: MavenM2, root_path, target_json_path):
     build_config = {
         "deps_info": []
@@ -486,7 +477,7 @@ def write_build_config(target_configs, sorted_targets, m2_home: MavenM2, root_pa
         artifact = MavenArtifact.parse_maven_dep(dep_name)
         src_config = target_configs[artifact.maven_key()]
         dst_config = {
-            "name": to_gn_target_name(str(artifact)),
+            "name": build_utils.to_gn_target_name(str(artifact)),
             "maven_depname": str(artifact),
             "deps": []
         }
@@ -496,15 +487,15 @@ def write_build_config(target_configs, sorted_targets, m2_home: MavenM2, root_pa
         if packaging in ("jar", "bundle"):
             jar_path = m2_home.maven_client_path(artifact, ext=".jar")
             dst_config["type"] = "android_maven_jar"
-            dst_config["file_path"] = to_gn_absolute_path(root_path, jar_path)
+            dst_config["file_path"] = build_utils.to_gn_absolute_path(root_path, jar_path)
 
         if packaging == "aar":
             aar_path = m2_home.maven_client_path(artifact, ext=".aar")
             dst_config["type"] = "android_maven_aar"
-            dst_config["file_path"] = to_gn_absolute_path(root_path, aar_path)
+            dst_config["file_path"] = build_utils.to_gn_absolute_path(root_path, aar_path)
 
         for item in src_config["deps_info"]:
-            dst_config["deps"].append(":" + to_gn_target_name(item))
+            dst_config["deps"].append(":" + build_utils.to_gn_target_name(item))
 
         deps_info.append(dst_config)
         pass

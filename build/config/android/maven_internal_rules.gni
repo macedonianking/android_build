@@ -93,7 +93,10 @@ template("android_maven_aar") {
   assert(defined(invoker.aar_path))
   assert(defined(invoker.maven_depname))
 
-  print("maven: ${target_name}@${invoker.maven_depname}")
+  not_needed(invoker, [ "maven_depname" ])
+  if (maven_verbose) {
+    print("maven: ${target_name}@${invoker.maven_depname}")
+  }
   process_android_aar(target_name) {
     forward_variables_from(invoker,
                            [
@@ -108,7 +111,10 @@ template("android_maven_jar") {
   assert(defined(invoker.jar_path))
   assert(defined(invoker.maven_depname))
 
-  print("maven: ${target_name}@${invoker.maven_depname}")
+  not_needed(invoker, [ "maven_depname" ])
+  if (maven_verbose) {
+    print("maven: ${target_name}@${invoker.maven_depname}")
+  }
   java_prebuilt(target_name) {
     forward_variables_from(invoker,
                            [
@@ -182,5 +188,25 @@ template("process_android_maven") {
 
   java_group(_template_name) {
     deps = _final_deps
+  }
+}
+
+template("process_android_maven_depends") {
+  assert(defined(invoker.deps_list))
+
+  _args_list = []
+  foreach(depname, invoker.deps_list) {
+    _args_list += [
+      "--depname",
+      depname,
+    ]
+  }
+
+  dep_config =
+      exec_script("//build/android/gn/process_android_maven_depends.py",
+                  _args_list,
+                  "json")
+  java_group(target_name) {
+    deps = dep_config.deps
   }
 }

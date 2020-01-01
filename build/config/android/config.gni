@@ -45,6 +45,9 @@ if (is_android) {
 
     # Enables verbose proguard output (summaries and unfiltered output).
     proguard_verbose = false
+
+    # maven verbose
+    maven_verbose = false
   }
 
   if (host_os == "linux") {

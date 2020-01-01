@@ -41,3 +41,11 @@ template("android_maven") {
     forward_variables_from(invoker, [ "deps_list" ])
   }
 }
+
+template("android_maven_depends") {
+  assert(defined(invoker.deps_list))
+
+  process_android_maven_depends(target_name) {
+    forward_variables_from(invoker, [ "deps_list" ])
+  }
+}
