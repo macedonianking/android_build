@@ -473,3 +473,8 @@ def check_stdout_encoding():
     if sys.stderr.encoding != "utf-8":
         sys.stderr.reconfigure(encoding="utf-8")
     pass
+
+
+def to_gn_absolute_path(root_dir, path):
+    name = os.path.relpath(os.path.abspath(path), os.path.abspath(root_dir))
+    return "//" + name.replace("\\", "/")

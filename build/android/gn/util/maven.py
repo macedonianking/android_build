@@ -137,6 +137,9 @@ class MavenM2:
         self._m2_build = os.path.join(self._m2_home, "build")
         pass
 
+    def m2_build(self):
+        return self._m2_build
+
     def m2_home(self):
         return self._m2_home
 

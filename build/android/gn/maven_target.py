@@ -47,10 +47,17 @@ class MavenTargetContext:
             self.generate_dep_config_impl(0, "+- ", artifact, deps_configs)
 
         for k, config in deps_configs.items():
+            deps_list = []
+            config["deps_info"] = deps_list
             for dep_item in config["deps_list"]:
                 dep_artifact = MavenArtifact.parse_maven_dep(dep_item)
                 assert (dep_artifact.maven_key() in deps_configs)
-        pass
+                dep_config = deps_configs[dep_artifact.maven_key()]
+                dep_artifact = MavenArtifact(dep_config["groupId"], dep_config["artifactId"], dep_config["version"])
+                deps_list.append(str(dep_artifact))
+                pass
+
+        return deps_configs
 
     def check_depend_conflict(self, step, log_prefix, artifact: MavenArtifact, deps_configs):
         maven_key = artifact.maven_key()

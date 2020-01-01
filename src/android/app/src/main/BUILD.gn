@@ -11,6 +11,7 @@ android_assets("main_assets") {
 android_resources("main_java_res") {
   android_manifest = "AndroidManifest.xml"
   deps = [
+    "//src/android/external/appcompat-resources-1.1.0:appcompat",
     "//src/android/platform:platform_res",
   ]
   resource_dirs = [ "res" ]

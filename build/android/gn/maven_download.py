@@ -430,7 +430,10 @@ def create_parser():
     parser = argparse.ArgumentParser(prog="maven_download.py")
     parser.add_argument("--m2-dir", required=True,
                         help="The destination directory.")
-    parser.add_argument("--artifact")
+    parser.add_argument("--src-root")
+    parser.add_argument("--output-json", required=True)
+    parser.add_argument("--target-json", required=True)
+    parser.add_argument("--artifact", action="append", default=[])
     return parser
 
 
@@ -440,12 +443,11 @@ def parse_args():
     return args
 
 
-def download_maven(args, context, m2_home):
+def download_maven(args, context, m2_home, root_artifacts):
     maven_center_list = [GOOGLE_MAVEN_REPO,
                          ALIYUN_MAVEN_REPO1,
                          MAVEN2_REPO1]
-    root_artifact = MavenArtifact.parse_maven_dep(args.artifact)
-    pending_list = [root_artifact]
+    pending_list = list(root_artifacts)
 
     loader = MavenLoader(maven_centers=maven_center_list,
                          maven_m2=m2_home,
@@ -465,22 +467,83 @@ def download_maven(args, context, m2_home):
             pass
 
 
-def generate_config(args, context, maven_m2):
-    artifact = MavenArtifact.parse_maven_dep(args.artifact)
-    root_artifacts = [artifact]
+def to_gn_absolute_path(root_path, path):
+    name = os.path.relpath(os.path.abspath(path), root_path)
+    return "//" + name.replace("\\", "/")
+
+
+def to_gn_target_name(artifact):
+    return artifact.replace("-", "_").replace(":", "_").replace(".", "_")
+
+
+def write_build_config(target_configs, sorted_targets, m2_home: MavenM2, root_path, target_json_path):
+    build_config = {
+        "deps_info": []
+    }
+    deps_info = build_config["deps_info"]
+
+    for dep_name in sorted_targets:
+        artifact = MavenArtifact.parse_maven_dep(dep_name)
+        src_config = target_configs[artifact.maven_key()]
+        dst_config = {
+            "name": to_gn_target_name(str(artifact)),
+            "maven_depname": str(artifact),
+            "deps": []
+        }
+
+        packaging = src_config["packaging"]
+        assert (packaging in ("jar", "aar", "bundle"))
+        if packaging in ("jar", "bundle"):
+            jar_path = m2_home.maven_client_path(artifact, ext=".jar")
+            dst_config["type"] = "android_maven_jar"
+            dst_config["file_path"] = to_gn_absolute_path(root_path, jar_path)
+
+        if packaging == "aar":
+            aar_path = m2_home.maven_client_path(artifact, ext=".aar")
+            dst_config["type"] = "android_maven_aar"
+            dst_config["file_path"] = to_gn_absolute_path(root_path, aar_path)
+
+        for item in src_config["deps_info"]:
+            dst_config["deps"].append(":" + to_gn_target_name(item))
+
+        deps_info.append(dst_config)
+        pass
+
+    build_utils.make_directory_for_file(target_json_path)
+    build_utils.write_json(build_config, target_json_path)
+    pass
+
+
+def generate_config(args, context, maven_m2, root_artifacts):
     target_context = MavenTargetContext(context, maven_m2, root_artifacts=root_artifacts)
-    target_context.generate_dep_configs(root_artifacts)
+
+    target_configs = target_context.generate_dep_configs(root_artifacts)
+    build_utils.make_directory_for_file(args.output_json)
+    build_utils.write_json(target_configs, args.output_json)
+
+    root_targets = [str(x) for x in root_artifacts]
+
+    def get_deps(dep):
+        dep_artifact = MavenArtifact.parse_maven_dep(dep)
+        return set(target_configs[dep_artifact.maven_key()]["deps_info"])
+
+    sorted_targets = build_utils.get_sorted_transitive_dependencies(root_targets, get_deps)
+    print(sorted_targets)
+
+    write_build_config(target_configs, sorted_targets, maven_m2, args.src_root, args.target_json)
     pass
 
 
 def main():
     args = parse_args()
 
+    root_targets = [MavenArtifact.parse_maven_dep(x) for x in args.artifact]
+
     context = MavenContext()
     maven_m2 = MavenM2(args.m2_dir)
 
-    download_maven(args, context, maven_m2)
-    generate_config(args, context, maven_m2)
+    download_maven(args, context, maven_m2, root_targets)
+    generate_config(args, context, maven_m2, root_targets)
     pass
 
 

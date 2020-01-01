@@ -9,20 +9,35 @@ import unzip_aar
 
 from util import build_utils
 
+from util.maven import MavenArtifact
+from util.maven import MavenM2
+
 
 def create_parser():
     parser = argparse.ArgumentParser(prog="generate_aar_targets.py")
     parser.add_argument("--name", help="The root target name")
+    parser.add_argument("--maven-depname", help="The maven depname for the aar file.")
+    parser.add_argument("--root-dir", help="The project root directory")
+    parser.add_argument("--m2-home", help="The build target directory.")
     parser.add_argument("--aar-path", help="The path to the aar archive directory.")
-    parser.add_argument("--aar-output-dir", help="The output aar output directory.")
-    parser.add_argument("--build-config", help="The output build config path.")
-    parser.add_argument("--target-directory", help="The build target directory.")
+    parser.add_argument("--json-path", help="The output build config path.")
     return parser
 
 
 def parse_args(args):
     parser = create_parser()
-    return parser.parse_args(args)
+    args = parser.parse_args(args)
+
+    required_options = [
+        "name",
+        "maven_depname",
+        "root_dir",
+        "m2_home",
+        "aar_path",
+        "json_path",
+    ]
+    build_utils.check_options(args, parser, required=required_options)
+    return args
 
 
 def _find_directory(directory, filename_filter):
@@ -33,7 +48,7 @@ def _find_directory(directory, filename_filter):
     return ret
 
 
-def generate_targets_from_aar_directory(name, deps, aar_output_dir, target_directory):
+def generate_targets_from_aar_directory(name, aar_output_dir, root_dir):
     build_config = {"name": name,
                     "target_list": [
                     ]}
@@ -41,30 +56,26 @@ def generate_targets_from_aar_directory(name, deps, aar_output_dir, target_direc
 
     android_manifest_path = os.path.join(aar_output_dir, "AndroidManifest.xml")
     resources_dir = os.path.join(aar_output_dir, "res")
-    android_resources_target = {
-        "name": name + "__android_resources",
-        "type": "android_resources",
-        "android_manifest": os.path.relpath(android_manifest_path, target_directory),
-        "resource_dirs": [
-            os.path.relpath(resources_dir, target_directory),
-        ]
-    }
-    if deps:
-        android_resources_target["deps"] = deps
-    target_list.append(android_resources_target)
+    if os.path.exists(resources_dir):
+        android_resources_target = {
+            "name": name + "__android_resources",
+            "type": "android_resources",
+            "android_manifest": build_utils.to_gn_absolute_path(root_dir, android_manifest_path),
+            "resource_dirs": [
+                build_utils.to_gn_absolute_path(root_dir, resources_dir),
+            ]
+        }
+        target_list.append(android_resources_target)
 
     jar_target_name_prefix = "%s__classes_jar" % name
-    index = 0
-    for jar_file in _find_directory(aar_output_dir, "classes*.jar"):
+    for index, jar_file in enumerate(_find_directory(aar_output_dir, "classes*.jar")):
         jar_target_name = jar_target_name_prefix + str(index)
         target_config = {
             "type": "java_prebuilt",
             "name": jar_target_name,
-            "jar_path": os.path.relpath(jar_file, target_directory),
+            "jar_path": build_utils.to_gn_absolute_path(root_dir, jar_file),
             "supports_android": True,
         }
-        if deps:
-            target_config["deps"] = deps
         target_list.append(target_config)
         pass
 
@@ -73,13 +84,22 @@ def generate_targets_from_aar_directory(name, deps, aar_output_dir, target_direc
 
 def main(argv):
     args = parse_args(argv)
-    unzip_record_path = args.build_config + ".unzip_aar.md5"
-    build_config_record_path = args.build_config + ".aar_targets.md5"
 
-    unzip_aar.unzip_aar(args.aar_path, args.aar_output_dir, unzip_record_path)
-    build_config = generate_targets_from_aar_directory(args.name, [], args.aar_output_dir, args.target_directory)
+    artifact = MavenArtifact.parse_maven_dep(args.maven_depname)
+    maven_m2 = MavenM2(args.m2_home)
 
-    build_utils.write_json(build_config, args.build_config)
+    base_dir = os.path.join(maven_m2.m2_build(), artifact.repository_dir_path())
+    build_utils.make_directory_for_file(base_dir)
+
+    unzip_record_path = args.json_path + ".unzip_aar.md5"
+
+    unzip_aar.unzip_aar(args.aar_path, base_dir, unzip_record_path)
+    build_config = generate_targets_from_aar_directory(args.name,
+                                                       base_dir,
+                                                       args.root_dir)
+
+    build_utils.make_directory_for_file(args.json_path)
+    build_utils.write_json(build_config, args.json_path)
     pass
 
 

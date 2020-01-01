@@ -3,6 +3,6 @@ group("main") {
     "app/src/main:main",
 
     # "external/appcompat-1.1.0:appcompat",
-    "external/appcompat-resources-1.1.0:appcompat_resources",
+    "external/appcompat-resources-1.1.0:main",
   ]
 }
