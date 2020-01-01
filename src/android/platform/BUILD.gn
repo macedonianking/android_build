@@ -19,8 +19,6 @@ java_prebuilt("guava_java") {
 
 android_library("platform_java") {
   deps = [
-    ":guava_java",
-    ":jsr305_java",
     ":platform_res",
   ]
 

@@ -183,7 +183,12 @@ template("android_maven") {
 }
 
 android_maven("appcompat") {
-  deps_list = [ "androidx.appcompat:appcompat:1.1.0" ]
+  deps_list = [
+    "androidx.appcompat:appcompat:1.1.0",
+    "com.google.guava:guava:28.0-android",
+    "com.squareup.okhttp3:okhttp:4.2.0",
+    "com.facebook.fresco:fresco:2.0.0",
+  ]
 }
 
 group("main") {

@@ -104,6 +104,8 @@ class MavenTargetContext:
         dep_list = maven_pom.get_depends()
         for dep_item in dep_list:
             src_dep_artifact = MavenArtifact(dep_item["groupId"], dep_item["artifactId"], dep_item["version"])
+            if src_dep_artifact == artifact:
+                continue
             deps_config.append(str(src_dep_artifact))
             pass
 
