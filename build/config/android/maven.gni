@@ -1,0 +1,43 @@
+import("//build/config/android/maven_internal_rules.gni")
+
+# Declare a target for build an andorid aar archive.
+#
+# Variables:
+#   aar_path: The andorid aar archive file to be processed.
+#   maven_depname: The maven depname for the aar file.
+#
+# Example
+#   android_aar() {
+#     aar_path = "appcomat-1.1.0.aar"
+#     maven_depname = "androidx.appcompat:appcompat:1.1.0"
+#   }
+template("android_aar") {
+  process_android_aar(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "aar_path",
+                             "maven_depname",
+                             "deps",
+                           ])
+  }
+}
+
+# Declare a target for build maven dependencies.
+#
+# Variables:
+#   deps_list: The maven dependency list.
+#
+# Example
+# android_maven("appcompat") {
+#   deps_list = [
+#     "androidx.appcompat:appcompat:1.1.0",
+#     "com.google.guava:guava:28.0-android",
+#     "com.squareup.okhttp3:okhttp:4.2.0",
+#     "com.facebook.fresco:fresco:2.0.0",
+#   ]
+# }
+template("android_maven") {
+  process_android_maven(target_name) {
+    forward_variables_from(invoker, [ "deps_list" ])
+  }
+}
