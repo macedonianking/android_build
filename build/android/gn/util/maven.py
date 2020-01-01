@@ -25,10 +25,10 @@ class MavenArtifact(object):
                 and self.version == other.version)
 
     def __hash__(self):
-        r = hash(self.group_id)
-        r = r * 31 + hash(self.artifact_id)
-        r = r * 31 + hash(self.version)
-        return r
+        return hash(str(self))
+
+    def maven_key(self):
+        return "%s:%s" % (self.group_id, self.artifact_id)
 
     def is_snapshot(self):
         return self.version.endswith("SNAPSHOT")
@@ -152,7 +152,10 @@ class MavenPomConfig:
         self.pom_config = pom_config
         pass
 
-    def get_list(self, name, force=False, default=[]):
+    def get_list(self, name, force=False, default=None):
+        if default is None:
+            default = []
+
         config = self.pom_config
         for item in name.split("."):
             if config is None and not force:
@@ -164,3 +167,45 @@ class MavenPomConfig:
         elif isinstance(config, list):
             return config
         return [config]
+
+
+class MavenPom:
+    def __init__(self, artifact: MavenArtifact, pom_config, parent_pom=None):
+        self.artifact = artifact
+        self.pom_config = pom_config
+        self.parent_pom = parent_pom
+        pass
+
+    def get_managed_depend(self, group_id, artifact_id):
+        project = self.pom_config["project"]
+        if "pom" == project.get("packaging"):
+            for dep_item in MavenPomConfig(project).get_list("dependencyManagement.dependencies.dependency"):
+                if group_id == dep_item["groupId"] and artifact_id == dep_item["artifactId"]:
+                    return dep_item
+        if self.parent_pom:
+            return self.parent_pom.get_managed_depend(group_id, artifact_id)
+        return None
+
+    def get_depends(self, wanted_list=("compile",)):
+        dep_list = []
+        for dep_item in MavenPomConfig(self.pom_config).get_list("project.dependencies.dependency"):
+            scope = dep_item.get("scope", "compile")
+            if scope not in wanted_list:
+                continue
+            dep_list.append(dep_item)
+        return dep_list
+
+
+class MavenContext:
+    def __init__(self):
+        self._pom_map = {}
+        pass
+
+    def maven_pom(self, artifact, force=False) -> MavenPom:
+        pom = self._pom_map.get(artifact)
+        if pom is None and force:
+            raise Exception("pom %s can't be found" % artifact)
+        return pom
+
+    def add_maven_pom(self, maven_pom: MavenPom):
+        self._pom_map[maven_pom.artifact] = maven_pom

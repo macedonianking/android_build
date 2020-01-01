@@ -18,6 +18,9 @@ from util import build_utils
 from util.maven import MavenArtifact
 from util.maven import MavenM2
 from util.maven import MavenPomConfig
+from util.maven import MavenPom
+from util.maven import MavenContext
+from maven_target import MavenTargetContext
 
 GOOGLE_MAVEN_REPO = "https://maven.aliyun.com/repository/google/"
 ALIYUN_MAVEN_REPO1 = "http://maven.aliyun.com/nexus/content/repositories/central/"
@@ -100,56 +103,6 @@ class MavenMetadata(object):
             if src_md5 != dst_md5:
                 return True
         return False
-
-
-def create_parser():
-    parser = argparse.ArgumentParser(prog="maven_download.py")
-    parser.add_argument("--m2-dir", required=True,
-                        help="The destination directory.")
-    parser.add_argument("--artifact")
-    return parser
-
-
-class MavenPom:
-    def __init__(self, artifact: MavenArtifact, pom_config, parent_pom=None):
-        self.artifact = artifact
-        self.pom_config = pom_config
-        self.parent_pom = parent_pom
-        pass
-
-    def get_managed_depend(self, group_id, artifact_id):
-        project = self.pom_config["project"]
-        if "pom" == project.get("packaging"):
-            for dep_item in MavenPomConfig(project).get_list("dependencyManagement.dependencies.dependency"):
-                if group_id == dep_item["groupId"] and artifact_id == dep_item["artifactId"]:
-                    return dep_item
-        if self.parent_pom:
-            return self.parent_pom.get_managed_depend(group_id, artifact_id)
-        return None
-
-    def get_depends(self, wanted_list=("compile",)):
-        dep_list = []
-        for dep_item in MavenPomConfig(self.pom_config).get_list("project.dependencies.dependency"):
-            scope = dep_item.get("scope", "compile")
-            if scope not in wanted_list:
-                continue
-            dep_list.append(dep_item)
-        return dep_list
-
-
-class MavenContext:
-    def __init__(self):
-        self._pom_map = {}
-        pass
-
-    def maven_pom(self, artifact, force=False) -> MavenPom:
-        pom = self._pom_map.get(artifact)
-        if pom is None and force:
-            raise Exception("pom %s can't be found" % artifact)
-        return pom
-
-    def add_maven_pom(self, maven_pom: MavenPom):
-        self._pom_map[maven_pom.artifact] = maven_pom
 
 
 class MavenLoader:
@@ -473,25 +426,34 @@ class MavenDownload:
     pass
 
 
-def main():
+def create_parser():
+    parser = argparse.ArgumentParser(prog="maven_download.py")
+    parser.add_argument("--m2-dir", required=True,
+                        help="The destination directory.")
+    parser.add_argument("--artifact")
+    return parser
+
+
+def parse_args():
     parser = create_parser()
     args = parser.parse_args()
+    return args
 
+
+def download_maven(args, context, m2_home):
     maven_center_list = [GOOGLE_MAVEN_REPO,
                          ALIYUN_MAVEN_REPO1,
                          MAVEN2_REPO1]
-
     root_artifact = MavenArtifact.parse_maven_dep(args.artifact)
     pending_list = [root_artifact]
-    context = MavenContext()
-    loader = MavenLoader(maven_centers=maven_center_list,
-                         maven_m2=MavenM2(args.m2_dir),
-                         opener=urllib.request.build_opener())
 
+    loader = MavenLoader(maven_centers=maven_center_list,
+                         maven_m2=m2_home,
+                         opener=urllib.request.build_opener())
     while pending_list:
         artifact = pending_list.pop(0)
         download_context = MavenDownload(context, loader, artifact, 0)
-        download_context.download(force=True)
+        download_context.download(force=False)
         maven_pom = context.maven_pom(artifact)
         for dep_item in maven_pom.get_depends(wanted_list=("compile", "provided")):
             artifact = MavenArtifact(dep_item["groupId"], dep_item["artifactId"], dep_item["version"])
@@ -501,6 +463,24 @@ def main():
                 continue
             pending_list.append(artifact)
             pass
+
+
+def generate_config(args, context, maven_m2):
+    artifact = MavenArtifact.parse_maven_dep(args.artifact)
+    root_artifacts = [artifact]
+    target_context = MavenTargetContext(context, maven_m2, root_artifacts=root_artifacts)
+    target_context.generate_dep_configs(root_artifacts)
+    pass
+
+
+def main():
+    args = parse_args()
+
+    context = MavenContext()
+    maven_m2 = MavenM2(args.m2_dir)
+
+    download_maven(args, context, maven_m2)
+    generate_config(args, context, maven_m2)
     pass
 
 
