@@ -6,9 +6,11 @@ from string import Template
 
 
 def main():
-    pattern = "hello world ${hello.world}  world"
-    re.sub
-    pass
+    _library_pattern = re.compile(".*?\\[(?P<library_name>.+)\\]")
+    sources = "SHARED LIBRARY [libhello.so]\nSHARED LIBRARY [libfoo.so]"
+    for pat in _library_pattern.finditer(sources):
+        print(pat.group(1))
+        pass
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 group("main") {
   deps = [
     "app/src/main:main",
+    "third_party/print_hello:printhello",
   ]
 }

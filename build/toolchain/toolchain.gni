@@ -1,3 +1,10 @@
+shlib_subdir = "."
+
+root_shlib_dir = root_out_dir
+if (shlib_subdir != ".") {
+  root_shlib_dir += "/$shlib_subdir"
+}
+
 if (is_posix) {
   arlib_extension = ".a"
   shlib_extension = ".so"

@@ -150,7 +150,8 @@ template("write_build_config") {
     assert(type == "android_apk" || type == "android_resources" ||
            type == "android_assets" || type == "java_binary" ||
            type == "java_library" || type == "deps_dex" ||
-           type == "resources_rewriter" || type == "group")
+           type == "resources_rewriter" || type == "android_native_libraries" ||
+           type == "group")
 
     if (defined(invoker.deps)) {
       deps = invoker.deps
@@ -193,6 +194,7 @@ template("write_build_config") {
     is_apk = type == "android_apk"
     is_android_assets = type == "android_assets"
     is_android_resources = type == "android_resources"
+    is_native_libraries = type == "android_native_libraries"
     is_deps_dex = type == "deps_dex"
     is_group = type == "group"
 
@@ -292,7 +294,19 @@ template("write_build_config") {
       }
     }
 
+    if (is_native_libraries) {
+      # inputs += invoker.native_libs
+      rebased_native_libs = rebase_path(invoker.native_libs, root_build_dir)
+      args += [ "--native-libs=$rebased_native_libs" ]
+    }
+
     if (is_apk) {
+      if (defined(invoker.native_libs)) {
+        inputs += invoker.native_libs
+        rebased_native_libs = rebase_path(invoker.native_libs, root_build_dir)
+        args += [ "--native-libs=$rebased_native_libs" ]
+      }
+
       if (defined(invoker.proguard_enabled) && invoker.proguard_enabled) {
         args += [
           "--proguard-enabled",
@@ -1187,7 +1201,7 @@ template("package_apk") {
     }
     if (invoker.native_libs != []) {
       _rebased_native_libs = rebase_path(invoker.native_libs, root_build_dir)
-      args += [ "--native-libs=$_rebased_native-libs" ]
+      args += [ "--native-libs=$_rebased_native_libs" ]
     }
     if (defined(invoker.native_libs_filearg)) {
       args += [ "--native-libs=${invoker.native_libs_filearg}" ]

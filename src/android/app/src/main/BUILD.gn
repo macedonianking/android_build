@@ -11,7 +11,7 @@ android_assets("main_assets") {
 android_resources("main_java_res") {
   android_manifest = "AndroidManifest.xml"
   deps = [
-    "//src/android/deps:guava",
+    # "//src/android/deps:guava",
     "//src/android/platform:platform_res",
   ]
   resource_dirs = [ "res" ]
@@ -33,8 +33,13 @@ proto_java_library("main_protoc_java") {
   ]
 }
 
+android_native_libraries("main_deps") {
+  srclib_deps = [ "//src/android/third_party/print_hello:printhello" ]
+}
+
 android_library("main_java") {
   deps = [
+    ":main_deps",
     ":main_java_res",
     ":main_protoc_java",
     "//src/android/platform:platform_java",

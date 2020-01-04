@@ -17,18 +17,19 @@ class AndroidManifest:
     def __init__(self, path):
         doc = xml.dom.minidom.parse(path)
         manifest_els = doc.getElementsByTagName("manifest")
+        self.path = path
         self.manifest = manifest_els[0]
         pass
 
     def get_instrumentation(self):
-        instructmentation_els = self.manifest.getElementsByTagName(
+        instrumentation_els = self.manifest.getElementsByTagName(
             "instrumentation")
-        if len(instructmentation_els) == 0:
+        if len(instrumentation_els) == 0:
             return None
-        if len(instructmentation_els) != 1:
+        if len(instrumentation_els) != 1:
             raise Exception(
                 "More than one <instrumentation> element found in %s" % self.path)
-        return instructmentation_els[0]
+        return instrumentation_els[0]
 
     def check_instrumentation(self, expected_package):
         instr = self.get_instrumentation()
@@ -120,7 +121,7 @@ def _merge_assets(all_assets):
         ret.sort()
         return ret
 
-    return (create_list(compressed), create_list(uncompressed))
+    return create_list(compressed), create_list(uncompressed)
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -241,6 +242,7 @@ def main():
         "java_binary": ["build_config", "jar_path"],
         "android_resources": ["build_config", "resources_zip"],
         "android_assets": ["build_config"],
+        "android_native_libraries": ["build_config", "native_libs"],
         "android_apk": ["build_config", "apk_path", "dex_path"],
         "deps_dex": ["build_config", "dex_path"],
         "group": ["build_config"]
@@ -268,7 +270,7 @@ def main():
     possible_deps_config_paths = args.possible_deps_configs
 
     allow_unknown_deps = (args.type in (
-        "android_apk", "android_resources", "android_assets"))
+        "android_apk", "android_resources", "android_assets", "android_native_libraries"))
     unknown_deps = [
         c for c in possible_deps_config_paths if not os.path.exists(c)]
     if not allow_unknown_deps and unknown_deps:
@@ -310,6 +312,7 @@ def main():
     direct_resources_deps = deps.direct("android_resources")
     all_resources_deps = deps.all("android_resources")
     all_resources_deps.reverse()
+    all_native_libraries_deps = deps.all("android_native_libraries")
 
     if args.type == "android_apk" and args.tested_apk_config:
         tested_apk_deps = Deps([args.tested_apk_config])
@@ -387,6 +390,10 @@ def main():
             deps_info["package_name"] = args.package_name
         pass
 
+    if args.type == "android_native_libraries":
+        deps_info["native_libs"] = build_utils.parse_gyp_list(args.native_libs)
+        pass
+
     if args.type in ("android_resources", "android_apk", "resources_rewriter"):
         config["resources"] = {}
         config["resources"]["dependency_zips"] = [d["resources_zip"]
@@ -446,6 +453,9 @@ def main():
         library_paths = []
         java_libraries_list_holder = [None]
         libraries = build_utils.parse_gyp_list(args.native_libs or '[]')
+        for d in all_native_libraries_deps:
+            libraries.extend(d["native_libs"])
+
         if libraries:
             all_deps = [path for path in libraries]
             library_paths = [path for path in all_deps]

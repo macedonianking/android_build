@@ -48,7 +48,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--depfile")
     parser.add_argument("--assets", default='[]',
                         help='GYP-list of files to add as assets in the form '
-                        '"srcPath:zipPath", where ":zipPath" is optional.')
+                             '"srcPath:zipPath", where ":zipPath" is optional.')
     parser.add_argument("--write-asset-list",
                         action="store_true",
                         help="Whether to create an assets/assets_list file.")
@@ -65,17 +65,17 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--native-libs", action="append",
                         default=[],
                         help="GYP-list of native libraries to include. "
-                        "Can be specified multiple times.")
+                             "Can be specified multiple times.")
     parser.add_argument("--secondary-native-libs",
                         action="append",
                         help="GYP-list of native libraries for secondary "
-                        "android-abi. Can be specified multiple times.",
+                             "android-abi. Can be specified multiple times.",
                         default=[])
     parser.add_argument("--android-abi",
                         help="Android architecture to use for native libraries.")
     parser.add_argument("--secondary-android-abi",
                         help="The secondary Android architecture to use for "
-                        "secondary native libraries.")
+                             "secondary native libraries.")
     parser.add_argument("--native-lib-placeholders",
                         help="GYP-list of native library placeholders to add.",
                         default='[]')
@@ -125,9 +125,9 @@ def _add_assets(apk, path_tuples, disable_compression=False):
     """添加assets文件到zip文件里面
     """
     for target_compress in (False, True):
-        for src_apth, dest_path in path_tuples:
+        for src_path, dest_path in path_tuples:
             compress = not disable_compression and (
-                os.path.splitext(src_apth[1]) not in _NO_COMPRESS_EXTENSIONS
+                    os.path.splitext(src_path[1]) not in _NO_COMPRESS_EXTENSIONS
             )
             if target_compress == compress:
                 apk_path = "assets/" + dest_path
@@ -136,7 +136,7 @@ def _add_assets(apk, path_tuples, disable_compression=False):
                     raise Exception("Multiple targets specified the asset path: %s"
                                     % apk_path)
                 except KeyError:
-                    build_utils.add_to_zip_hermetic(apk, apk_path, src_path=src_apth,
+                    build_utils.add_to_zip_hermetic(apk, apk_path, src_path=src_path,
                                                     compress=compress)
 
     pass
@@ -203,9 +203,10 @@ def main(argv):
                                                     data=resource_apk.read(
                                                         zipinfo.filename),
                                                     compress=compress)
+
                 resource_infos = resource_apk.infolist()
 
-                assert(resource_infos[0].filename == "AndroidManifest.xml")
+                assert (resource_infos[0].filename == "AndroidManifest.xml")
                 # 1.AndroidManifest.xml
                 copy_resource(resource_infos[0])
 
