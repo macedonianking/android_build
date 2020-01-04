@@ -1,0 +1,39 @@
+android_ndk_home = D:\share\android-ndk-r20
+clang_toolchain_dir = $android_ndk_home/toolchains/llvm/prebuilt/windows-x86_64/bin
+toolchain_flags = -target armv7a-linux-androideabi16
+clang = $clang_toolchain_dir/clang
+clangxx = $clang_toolchain_dir/clang++
+ldflags = -pie
+
+
+rule cc
+  command = $clang $toolchain_flags  -MMD -MF ${out}.d -c ${cflags} ${cflags_c} ${defines} ${include_dirs} ${in} -o ${out}
+  description = CC ${in}
+  depfile = ${out}.d
+  deps = gcc
+
+rule cxx
+  command = $clangxx $toolchain_flags -MMD -MF ${out}.d -c ${cflags} ${cflags_c} ${defines} ${include_dirs} ${in} -o ${out}
+  description = CXX ${in}
+  depfile = ${out}.d
+  deps = gcc
+
+rule solink
+  command = $clang $toolchain_flags ${ldflags} -o ${out} @${out}.rsp
+  description = SOLINK ${label}
+  rspfile = ${out}.rsp
+  rspfile_content = ${in} ${solibs} ${libs}
+  restat = 1
+
+rule link
+  command = $clang $toolchain_flags ${ldflags} -o ${out} ${in} ${solibs} ${libs}
+  description = LINK ${label}
+
+build out/main.o: cc src/main.c
+build out/main: link out/main.o
+
+build out/native_lib.o: cxx src/native_lib.cpp
+build out/libnativelib.so: solink out/native_lib.o
+    libs = -ldl -lm -lstdc++
+    ldflags = -shared
+

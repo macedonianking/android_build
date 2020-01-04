@@ -33,14 +33,17 @@ proto_java_library("main_protoc_java") {
   ]
 }
 
-android_native_libraries("main_deps") {
-  srclib_deps = [ "//src/android/third_party/print_hello:printhello" ]
+android_native_libraries("main_native_libraries") {
+  srclib_deps = [
+    "//src/android/third_party/print_hello:printhello",
+    "//src/android/third_party/native_lib:nativelib",
+  ]
 }
 
 android_library("main_java") {
   deps = [
-    ":main_deps",
     ":main_java_res",
+    ":main_native_libraries",
     ":main_protoc_java",
     "//src/android/platform:platform_java",
   ]

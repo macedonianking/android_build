@@ -7,3 +7,6 @@
 /.idea
 /.vscode/settings.json
 /src/m2
+/ninja_build/main/out
+/ninja_build/main/.ninja_log
+/ninja_build/main/.ninja_deps

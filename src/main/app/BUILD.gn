@@ -1,21 +1,13 @@
 executable("main") {
   sources = [
-    "src/chapter2/chapter2.c",
-    "src/endian.c",
     "src/main.c",
   ]
+
+  configs -= [ "//build/config:debug" ]
 
   cflags_c = [
     "-Wall",
     "-Werror",
   ]
-  include_dirs = [
-    "src",
-    "//src/main",
-  ]
-
-  deps = [
-    "//src/main/hello_shared:hello",
-    "//src/main/hello_static:hello",
-  ]
+  include_dirs = [ "src" ]
 }

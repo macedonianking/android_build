@@ -1,0 +1,12 @@
+import("//build/config/android/config.gni")
+import("//build/toolchain/toolchain.gni")
+
+copy("cpplib") {
+  _soname = "libc++_shared.so"
+  sources = [
+    "${android_libcpp_lib_dir}/${_soname}",
+  ]
+  outputs = [
+    "${root_shlib_dir}/${_soname}",
+  ]
+}

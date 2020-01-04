@@ -8,8 +8,11 @@ config("release") {
 }
 
 config("default_libs") {
+  libs = []
+
+  libs += [ "stdc++" ]
   if (is_android) {
-    libs = [
+    libs += [
       "dl",
       "m",
     ]

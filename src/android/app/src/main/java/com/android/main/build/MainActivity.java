@@ -18,5 +18,17 @@ public class MainActivity extends Activity {
         TextView view = (TextView) findViewById(R.id.dayno);
         // int dayNo = TimeHelper.getDayNo(System.currentTimeMillis());
         view.setText("A");
+        view.setText(this.stringFromJNI());
     }
+
+    // Used to load the 'native-lib' library on application startup.
+    static {
+        System.loadLibrary("nativelib");
+    }
+
+    /**
+     * A native method that is implemented by the 'native-lib' native library,
+     * which is packaged with this application.
+     */
+    public native String stringFromJNI();
 }

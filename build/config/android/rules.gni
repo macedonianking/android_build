@@ -483,6 +483,9 @@ template("android_apk") {
     _srcjar_deps += invoker.srcjar_deps
   }
 
+  _native_libs += [ "$root_shlib_dir/libc++_shared.so" ]
+  _native_libs_deps += [ "//build/android:cpplib" ]
+
   if (defined(invoker.native_libs) && invoker.native_libs != []) {
     # allow native libs to be in the form "foo.so","foo.cr.so"
     _first_ext_removed =
@@ -902,16 +905,18 @@ template("android_native_libraries") {
   }
   assert(src_libs != [])
 
-  _native_libs = process_file_template(
-          src_libs,
-          "$target_out_dir/$target_name/libs/{{source_file_part}}")
+  libs_dir = "$target_out_dir/$target_name/libs"
+  _native_libs =
+      process_file_template(src_libs, "$libs_dir/{{source_file_part}}")
 
   prepare_target_name = "${target_name}__android_native_libraries__prepare"
   copy(prepare_target_name) {
     deps = _srclib_deps + _deps
 
     sources = src_libs
-    outputs = _native_libs
+    outputs = [
+      "$libs_dir/{{source_file_part}}",
+    ]
   }
   _final_deps += [ ":${prepare_target_name}" ]
 

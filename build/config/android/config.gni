@@ -80,7 +80,7 @@ if (is_android) {
 
   zipalign_path = "$android_sdk_build_tools/zipalign"
 
-  _android_api_level = 16
+  _android_api_level = 21
   arm_android_sysroot_subdir =
       "platforms/android-${_android_api_level}/arch-arm"
   x86_android_sysroot_subdir =
@@ -99,10 +99,8 @@ if (is_android) {
     assert(false, "Platform not supported")
   }
 
-  # 工具链的设置
   android_toolchain_prefix = "$android_toolchain_root/bin/"
-  android_toolchain_binary_prefix =
-      "$android_toolchain_root/bin/${_binary_prefix}-"
+  android_tool_prefix = "$android_toolchain_root/bin/${_binary_prefix}/bin/"
 
   if (current_cpu == "arm") {
     import("//build/config/arm.gni")
@@ -117,4 +115,7 @@ if (is_android) {
   } else {
     assert(false, "Unknown Android ABI: " + current_cpu)
   }
+
+  android_libcpp_lib_dir =
+      "$android_toolchain_root/sysroot/usr/lib/$_binary_prefix"
 }
