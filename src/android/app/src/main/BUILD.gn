@@ -11,7 +11,7 @@ android_assets("main_assets") {
 android_resources("main_java_res") {
   android_manifest = "AndroidManifest.xml"
   deps = [
-    # "//src/android/deps:guava",
+    "//src/android/deps:appcompat",
     "//src/android/platform:platform_res",
   ]
   resource_dirs = [ "res" ]
@@ -56,7 +56,7 @@ android_library("main_java") {
     "//src/android/platform:platform_java",
   ]
   srcjar_deps = [ ":book_aidl" ]
-  zipjar_deps = [ ":main_java_zipjar" ]
+  srczip_deps = [ ":main_java_zipjar" ]
 
   supports_android = true
   requires_android = true

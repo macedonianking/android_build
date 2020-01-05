@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import sys
+import itertools
+import os
 import shutil
 import sys
 import zipfile
-import os
-import itertools
 
 from util import build_utils
 
@@ -81,6 +80,8 @@ def create_parser() -> argparse.ArgumentParser:
                         default='[]')
     parser.add_argument("--emma-device-jar",
                         help="Path to emma_device.jar to include.")
+    parser.add_argument("--srczip-path",
+                        help="Path to srczip file to include.")
     parser.add_argument("--uncompress-shared-libraries",
                         action="store_true",
                         help="Uncompress shared libraries.")
@@ -266,6 +267,21 @@ def main(argv):
 
                             build_utils.add_to_zip_hermetic(out_apk, apk_path,
                                                             data=emma_device_jar.read(apk_path))
+
+                # 7. srczip files.
+                if args.srczip_path:
+                    with zipfile.ZipFile(args.srczip_path, "r") as srczip_file:
+                        for apk_path in srczip_file.namelist():
+                            apk_path_lower = apk_path.lower()
+                            if apk_path_lower.startswith("meta-inf/manifest.mf"):
+                                continue
+                            if apk_path_lower.endswith("/"):
+                                continue
+                            if apk_path_lower.endswith(".class"):
+                                continue
+
+                            build_utils.add_to_zip_hermetic(out_apk, apk_path,
+                                                            data=srczip_file.read(apk_path))
                 pass
 
             shutil.move(tmp_apk, args.output_apk)

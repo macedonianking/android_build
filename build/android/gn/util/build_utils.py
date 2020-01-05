@@ -479,5 +479,6 @@ def to_gn_absolute_path(root_dir, path):
     name = os.path.relpath(os.path.abspath(path), os.path.abspath(root_dir))
     return "//" + name.replace("\\", "/")
 
+
 def to_gn_target_name(artifact):
     return artifact.replace("-", "_").replace(":", "_").replace(".", "_")

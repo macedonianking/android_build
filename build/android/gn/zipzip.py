@@ -9,17 +9,29 @@ from util import build_utils
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="zipzip.py")
     parser.add_argument("--depfile")
-    parser.add_argument("--inputs")
+    parser.add_argument("--inputs", action="append", default=[])
     parser.add_argument("--output")
     parser.add_argument("--base-dir")
     return parser
 
 
-def main(argv):
+def parse_args(argv):
+    argv = build_utils.expand_file_args(argv)
     parser = create_parser()
     args = parser.parse_args(argv)
 
-    inputs = build_utils.parse_gyp_list(args.inputs)
+    input_list = []
+    for item in args.inputs:
+        input_list.extend(build_utils.parse_gyp_list(item))
+    args.inputs = input_list
+
+    return args
+
+
+def main(argv):
+    args = parse_args(argv)
+
+    inputs = args.inputs
     output = args.output
     build_utils.remove_subtree(args.base_dir)
     build_utils.make_directory(args.base_dir)

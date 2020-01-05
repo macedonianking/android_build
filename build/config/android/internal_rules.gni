@@ -222,6 +222,8 @@ template("write_build_config") {
       args += [
         "--jar-path",
         rebase_path(invoker.jar_path, root_build_dir),
+        "--srczip-path",
+        rebase_path(invoker.srczip_path, root_build_dir),
       ]
     }
     if (is_apk || is_deps_dex || (is_java && supports_android)) {
@@ -548,7 +550,7 @@ template("process_java_prebuilt") {
   }
 }
 
-template("zipjar") {
+template("create_srczip") {
   set_sources_assignment_filter([])
   forward_variables_from(invoker, [ "testonly" ])
 
@@ -557,12 +559,12 @@ template("zipjar") {
     _input_zips += invoker.input_zips
   }
 
-  _zipjar_deps = []
-  if (defined(invoker.zipjar_deps)) {
-    _zipjar_deps += invoker.zipjar_deps
+  _srczip_deps = []
+  if (defined(invoker.srczip_deps)) {
+    _srczip_deps += invoker.srczip_deps
   }
 
-  foreach(dep_item, _zipjar_deps) {
+  foreach(dep_item, _srczip_deps) {
     _dep_name = get_label_info(dep_item, "name")
     _dep_gen_dir = get_label_info(dep_item, "target_gen_dir")
     _input_zips += [ "$_dep_gen_dir/$_dep_name.zipjar" ]
@@ -577,7 +579,7 @@ template("zipjar") {
     input_zips = _input_zips
     output = invoker.output
 
-    deps += _zipjar_deps
+    deps += _srczip_deps
   }
 }
 
@@ -918,7 +920,7 @@ template("java_library_impl") {
   if (defined(invoker.jar_path)) {
     _jar_path = invoker.jar_path
   }
-  _zipjar_path = "$target_gen_dir/$target_name.zipjar"
+  _srczip_path = "$target_gen_dir/$target_name.zipjar"
 
   _template_name = target_name
   _final_deps = []
@@ -937,6 +939,10 @@ template("java_library_impl") {
 
   if (defined(invoker.android_manifest)) {
     not_needed(invoker, [ "android_manifest" ])
+  }
+
+  if (defined(invoker.srczip_path)) {
+    _srczip_path = invoker.srczip_path
   }
 
   if (defined(invoker.override_build_config)) {
@@ -964,6 +970,8 @@ template("java_library_impl") {
                                invoker.bypass_platform_checks
       build_config = _build_config
       jar_path = _jar_path
+      srczip_path = _srczip_path
+
       if (_supports_android) {
         dex_path = _dex_path
       }
@@ -986,17 +994,17 @@ template("java_library_impl") {
   }
   assert(_java_files != [] || _srcjar_deps != [] || _srcjars != [])
 
-  _zipjar_deps = []
-  if (defined(invoker.zipjar_deps)) {
-    _zipjar_deps += invoker.zipjar_deps
+  _srczip_deps = []
+  if (defined(invoker.srczip_deps)) {
+    _srczip_deps += invoker.srczip_deps
   }
 
-  _zipjar_target = "${_template_name}__zipjar"
-  zipjar(_zipjar_target) {
+  _srczip_target_name = "${_template_name}__srczip"
+  create_srczip(_srczip_target_name) {
     forward_variables_from(invoker, [ "deps" ])
 
-    zipjar_deps = _zipjar_deps
-    output = _zipjar_path
+    srczip_deps = _srczip_deps
+    output = _srczip_path
   }
 
   _compile_java_target = "${_template_name}__compile_java"
@@ -1020,7 +1028,7 @@ template("java_library_impl") {
     srcjars = _srcjars
     supports_android = _supports_android
 
-    deps = [ ":$_zipjar_target" ] + build_config_deps
+    deps = [ ":$_srczip_target_name" ] + build_config_deps
   }
 
   if (defined(invoker.main_class)) {
@@ -1114,6 +1122,7 @@ template("java_prebuilt_impl") {
     deps = _deps
     build_config = _build_config
     jar_path = _jar_path
+    srczip_path = _zipjar_path
     if (_supports_android) {
       dex_path = _dex_path
     }
@@ -1191,6 +1200,7 @@ template("java_prebuilt_impl") {
       ":$_build_config_target_name",
       ":$_ijar_target_name",
       ":$_process_jar_target_name",
+      ":$_zipjar_prebuilt_target_name",
     ]
     if (_supports_android) {
       public_deps += [ ":$_dex_target_name" ]
@@ -1275,6 +1285,9 @@ template("package_apk") {
     if (defined(invoker.dex_path)) {
       inputs += [ invoker.dex_path ]
     }
+    if (defined(invoker.srczip_path)) {
+      inputs += [ invoker.srczip_path ]
+    }
 
     outputs = [
       depfile,
@@ -1335,6 +1348,12 @@ template("package_apk") {
     if (defined(invoker.uncompress_shared_libraries) &&
         invoker.uncompress_shared_libraries) {
       args += [ "--uncompress-shared-libraries" ]
+    }
+    if (defined(invoker.srczip_path)) {
+      args += [
+        "--srczip-path",
+        rebase_path(invoker.srczip_path, root_build_dir),
+      ]
     }
   }
 }
@@ -1613,6 +1632,7 @@ template("create_apk") {
                              "secondary_native_libs",
                              "uncompress_shared_libraries",
                              "write_asset_list",
+                             "srczip_path",
                            ])
     deps = _deps + [ ":${_package_resources_target_name}" ]
     native_libs = _native_libs

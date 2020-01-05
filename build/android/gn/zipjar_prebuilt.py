@@ -40,7 +40,7 @@ def main():
     build_utils.extract_all(args.jar_path, args.base_dir,
                             predicate=predicate)
     zip_files = build_utils.find_in_directory(args.base_dir, "*")
-    build_utils.do_zip(zip_files, args.zipjar_path)
+    build_utils.do_zip(zip_files, args.zipjar_path, args.base_dir)
 
     if args.depfile:
         dep_files = build_utils.get_python_dependencies()

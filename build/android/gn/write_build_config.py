@@ -154,6 +154,8 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--supports-android", action="store_true")
     parser.add_argument("--requires-android", action="store_true")
     parser.add_argument("--bypass-platform-checks", action="store_true")
+    parser.add_argument("--srczip-path",
+                        help="Specifies the path to the *.srczip")
 
     # android library options.
     parser.add_argument("--dex-path", help="Path to target's dex output.")
@@ -238,7 +240,7 @@ def main():
     args = parser.parse_args()
 
     requires_options_map = {
-        "java_library": ["build_config", "jar_path"],
+        "java_library": ["build_config", "jar_path", "srczip_path"],
         "java_binary": ["build_config", "jar_path"],
         "android_resources": ["build_config", "resources_zip"],
         "android_assets": ["build_config"],
@@ -344,6 +346,7 @@ def main():
         java_full_classpath = [c["jar_path"] for c in all_library_deps]
         config["resources_deps"] = [c["path"] for c in all_resources_deps]
         deps_info["jar_path"] = args.jar_path
+        deps_info["srczip_path"] = args.srczip_path
         if args.type == "android_apk" or args.supports_android:
             deps_info["dex_path"] = args.dex_path
         if args.type == "android_apk":
@@ -439,9 +442,12 @@ def main():
         dependency_jars = [c["jar_path"] for c in all_library_deps]
         all_interface_jars = [as_interface_jar(p)
                               for p in dependency_jars + [args.jar_path]]
+        all_srczips = [c["srczip_path"] for c in all_library_deps]
+        all_srczips.append(args.srczip_path)
         config["dist_jar"] = {
             "dependency_jars": dependency_jars,
-            "all_interface_jars": all_interface_jars
+            "all_interface_jars": all_interface_jars,
+            "all_srczips": all_srczips,
         }
 
         manifest = AndroidManifest(args.android_manifest)

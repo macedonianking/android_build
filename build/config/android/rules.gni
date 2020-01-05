@@ -636,9 +636,11 @@ template("android_apk") {
   _build_config = "$target_gen_dir/$target_name.build_config"
   resources_zip_path = "$base_path.resources.zip"
   _all_resources_zip_path = "$base_path.resources.all.zip"
+  _all_srczip_path = "$base_path.all.zipjar"
   _jar_path = "$base_path.jar"
   _lib_dex_path = "$base_path.dex.jar"
   _rebased_lib_dex_path = rebase_path(_lib_dex_path, root_build_dir)
+  _srczip_path = "$base_path.zipjar"
   _template_name = target_name
 
   enable_multidex = defined(invoker.enable_multidex) && invoker.enable_multidex
@@ -681,6 +683,11 @@ template("android_apk") {
   _srcjar_deps = []
   if (defined(invoker.srcjar_deps)) {
     _srcjar_deps += invoker.srcjar_deps
+  }
+
+  _srczip_deps = []
+  if (defined(invoker.srczip_deps)) {
+    _srczip_deps += invoker.srczip_deps
   }
 
   if (defined(invoker.enable_cpplib) && invoker.enable_cpplib) {
@@ -739,6 +746,7 @@ template("android_apk") {
     jar_path = _jar_path
     dex_path = final_dex_path
     apk_path = _final_apk_path
+    srczip_path = _srczip_path
     incremental_apk_path = "${_final_apk_path_no_ext}_incremental.apk"
     incremental_install_script_path =
         "$target_out_dir/${target_name}__incremental_install.py"
@@ -802,11 +810,24 @@ template("android_apk") {
     }
 
     srcjar_deps = _srcjar_deps
+    srczip_deps = _srczip_deps
     jar_path = _jar_path
     dex_path = _lib_dex_path
+    srczip_path = _srczip_path
+
     if (defined(invoker.deps)) {
       deps += invoker.deps
     }
+  }
+
+  _final_srczip_target_name = "${_template_name}__final_srczip"
+  zipzip(_final_srczip_target_name) {
+    output = _all_srczip_path
+    args = [ "--inputs=@FileArg($_rebased_build_config:dist_jar:all_srczips)" ]
+
+    deps = [
+      ":$java_target",
+    ]
   }
 
   if (_proguard_enabled) {
@@ -905,6 +926,7 @@ template("android_apk") {
     dex_path = final_dex_path
     load_library_from_apk = false
     create_density_splits = _create_density_splits
+    srczip_path = _all_srczip_path
 
     if (!defined(extensions_to_not_compress)) {
       extensions_to_not_compress = ".dat,.bin,.pak"
@@ -921,6 +943,7 @@ template("android_apk") {
               ":$build_config_target",
               ":$process_resources_target",
               ":$final_dex_target_name",
+              ":$_final_srczip_target_name",
             ]
 
     deps += [ _native_libs_file_arg_dep ]
