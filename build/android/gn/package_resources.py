@@ -62,6 +62,10 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--base-dir", required=True)
     parser.add_argument("--android-sdk-jar",
                         help="Path to the Android SDK jar.")
+    parser.add_argument("--android-min-sdk-version",
+                        help="Specifies the minimum android sdk version")
+    parser.add_argument("--android-target-sdk-version",
+                        help="Specifies the target android sdk version.")
     parser.add_argument("--aapt-path",
                         help="Path to the Android aapt tool.")
     parser.add_argument("--configuration-name")
@@ -71,7 +75,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("--shared-resources",
                         action="store_true",
                         help="Make a resource package that can be loaded by a different "
-                        "application at runtime to access the packge's resources")
+                             "application at runtime to access the package's resources")
     parser.add_argument("--app-as-shared-lib",
                         action="store_true",
                         help="Make a resource package that can be loaded as shared library.")
@@ -124,6 +128,8 @@ def _construct_most_aapt_args(args):
         "-I", args.android_sdk_jar,
         "-F", args.apk_path,
         "--ignore-assets", build_utils.AAPT_IGNORE_PATTERN,
+        "--min-sdk-version", str(21),
+        "--target-sdk-version", str(21),
     ]
 
     if args.no_compress:
@@ -149,6 +155,12 @@ def _construct_most_aapt_args(args):
 
     if 'Debug' in args.configuration_name:
         package_command += ["--debug-mode"]
+
+    if args.android_min_sdk_version:
+        package_command += ["--min-sdk-version", args.android_min_sdk_version]
+
+    if args.android_target_sdk_version:
+        package_command += ["--target-sdk-version", args.android_target_sdk_version]
 
     return package_command
 
@@ -176,7 +188,7 @@ def move_images_to_non_mdpi_folders(res_root):
         if not os.path.isdir(src_dir):
             continue
         dst_components = [c for c in src_components if c != "mdpi"]
-        assert(src_components != dst_components)
+        assert (src_components != dst_components)
         dst_dir_name = "-".join(dst_components)
         dst_dir = os.path.join(res_root, dst_dir_name)
         build_utils.make_directory(dst_dir)
@@ -185,7 +197,7 @@ def move_images_to_non_mdpi_folders(res_root):
                 continue
             src_file = os.path.join(src_dir, src_file_name)
             dst_file = os.path.join(dst_dir, src_file_name)
-            assert(not os.path.lexists(dst_file))
+            assert (not os.path.lexists(dst_file))
             shutil.move(src_file, dst_file)
         pass
     pass

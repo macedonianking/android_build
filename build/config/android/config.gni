@@ -1,7 +1,9 @@
 if (is_android) {
   if (!defined(default_android_sdk_root)) {
     default_android_sdk_root = getenv("ANDROID_SDK_HOME")
-    default_android_sdk_version = "29"
+    default_android_sdk_version = 29
+    default_android_min_sdk_verison = 21
+    default_android_target_sdk_version = 21
     default_android_sdk_build_tools_version = "29.0.2"
   }
 
@@ -21,6 +23,8 @@ if (is_android) {
 
     # 编译使用的sdk的版本
     android_sdk_version = default_android_sdk_version
+    android_min_sdk_version = default_android_min_sdk_verison
+    android_target_sdk_version = default_android_target_sdk_version
 
     # android编译工具使用的版本
     android_sdk_build_tools_version = default_android_sdk_build_tools_version

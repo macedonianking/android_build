@@ -707,8 +707,16 @@ template("dex") {
   set_sources_assignment_filter([])
 
   _enable_multidex = defined(invoker.enable_multidex) && invoker.enable_multidex
+  if (defined(invoker.min_sdk_version)) {
+    _android_min_sdk_version = invoker.min_sdk_version
+  } else {
+    _android_min_sdk_version = android_min_sdk_version
+  }
 
-  if (_enable_multidex) {
+  _enable_multidex_main_dex_list = false
+
+  if (_enable_multidex && _android_min_sdk_version < 21) {
+    _enable_multidex_main_dex_list = true
     _main_dex_list_path = invoker.output + ".main_dex_list"
     _main_dex_list_target_name = "${target_name}__main_dex_list"
     action(_main_dex_list_target_name) {
@@ -764,6 +772,11 @@ template("dex") {
     }
   }
 
+  not_needed([
+               "_enable_multidex_main_dex_list",
+               "_android_min_sdk_version",
+             ])
+
   assert(defined(invoker.output))
   action(target_name) {
     forward_variables_from(invoker,
@@ -796,8 +809,10 @@ template("dex") {
     ]
 
     if (_enable_multidex) {
+      args += [ "--multi-dex" ]
+    }
+    if (_enable_multidex && _enable_multidex_main_dex_list) {
       args += [
-        "--multi-dex",
         "--main-dex-list-path",
         rebase_path(_main_dex_list_path, root_build_dir),
       ]
@@ -1371,6 +1386,18 @@ template("create_apk") {
     _split_languages = invoker.split_languages
   }
 
+  if (defined(invoker.android_min_sdk_version)) {
+    _android_min_sdk_version = invoker.android_min_sdk_version
+  } else {
+    _android_min_sdk_version = android_min_sdk_version
+  }
+
+  if (defined(invoker.android_target_sdk_version)) {
+    _android_target_sdk_version = invoker.android_target_sdk_version
+  } else {
+    _android_target_sdk_version = android_target_sdk_version
+  }
+
   not_needed(invoker,
              [
                "load_library_from_apk",
@@ -1416,6 +1443,10 @@ template("create_apk") {
         rebase_path(_base_dir, root_build_dir),
         "--android-sdk-jar",
         _rebased_android_sdk_jar,
+        "--android-min-sdk-version",
+        "$_android_min_sdk_version",
+        "--android-target-sdk-version",
+        "$_android_target_sdk_version",
         "--aapt-path",
         _android_aapt_path,
         "--configuration-name=$android_configuration_name",

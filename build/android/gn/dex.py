@@ -28,7 +28,7 @@ def create_parser() -> argparse.ArgumentParser:
                         help="true if proguard is enabled for debug build.")
     parser.add_argument("--proguard-enabled-input-path",
                         help="Path to dex in Release mode when proguard "
-                        "is enabled.")
+                             "is enabled.")
     parser.add_argument("--no-locals", default="0",
                         help="Exclude locales from the dex list.")
     parser.add_argument("--incremental",
@@ -39,7 +39,7 @@ def create_parser() -> argparse.ArgumentParser:
                         help="A list of paths to exclude from the dex file.")
     parser.add_argument("--main-dex-list-path",
                         help="A file containing a list of the classes to "
-                        "include in the main dex.")
+                             "include in the main dex.")
     parser.add_argument("--multidex-configuration-path",
                         help="A json file containing multidex build configuration.")
     parser.add_argument("--multi-dex", action="store_true", default=False)
@@ -49,12 +49,12 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def parse_options(parser, argv):
+def parse_args(parser, argv):
     argv = build_utils.expand_file_args(argv)
     args = parser.parse_args(argv)
 
     required_options = ("android_sdk_tools",)
-    build_utils.check_options(args, parser,  required=required_options)
+    build_utils.check_options(args, parser, required=required_options)
 
     if args.multidex_configuration_path:
         with open(args.multidex_configuration_path) as multidex_config_file:
@@ -62,9 +62,9 @@ def parse_options(parser, argv):
             args.multi_dex = multidex_config.get("enabled", False)
             pass
 
-    if args.multi_dex and not args.main_dex_list_path:
-        print("multidex cannot be enabled without --main-dex-list-path")
-        args.multi_dex = False
+    # if args.multi_dex and not args.main_dex_list_path:
+    #     print("multidex cannot be enabled without --main-dex-list-path")
+    #     args.multi_dex = False
     elif args.main_dex_list_path and not args.multi_dex:
         print("--main-dex-list-path is unused if --multi-dex is not enabled")
 
@@ -96,8 +96,11 @@ def _run_dx(args, dex_cmd, paths):
     build_utils.make_directory(base_dir)
     build_utils.remove_subtree(base_dir)
 
-    if args.multi_dex:
-        dex_cmd += ["--main-dex-list=%s" % args.main_dex_list_path]
+    if args.multi_dex and args.main_dex_list_path:
+        dex_cmd += [
+            "--minimal-main-dex",
+            "--main-dex-list=%s" % args.main_dex_list_path
+        ]
 
     dex_cmd += paths
     build_utils.check_output(dex_cmd, print_stderr=False)
@@ -116,7 +119,7 @@ def _on_stale_md5(args, dex_cmd, paths):
 
 def main(argv):
     parser = create_parser()
-    args = parse_options(parser, argv)
+    args = parse_args(parser, argv)
 
     paths = args.paths
     if ((args.proguard_enabled == 'true' and args.configuration_name == "Release")
@@ -145,13 +148,13 @@ def main(argv):
                "--output", args.dex_path]
 
     if args.no_locals != "0":
-        dex_cmd .append("--no-locals")
+        dex_cmd.append("--no-locals")
 
     if args.multi_dex:
-        input_paths.append(args.main_dex_list_path)
+        if args.main_dex_list_path:
+            input_paths.append(args.main_dex_list_path)
         dex_cmd += [
             "--multi-dex",
-            "--minimal-main-dex"
         ]
 
     output_paths = [
