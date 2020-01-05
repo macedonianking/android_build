@@ -160,7 +160,7 @@ template("write_build_config") {
     }
 
     script = "//build/android/gn/write_build_config.py"
-    depfile = "$target_out_dir/$target_name.deps"
+    depfile = "$target_gen_dir/$target_name.d"
     sources = []
     inputs = []
 
@@ -548,6 +548,77 @@ template("process_java_prebuilt") {
   }
 }
 
+template("zipjar") {
+  set_sources_assignment_filter([])
+  forward_variables_from(invoker, [ "testonly" ])
+
+  _input_zips = []
+  if (defined(invoker.input_zips)) {
+    _input_zips += invoker.input_zips
+  }
+
+  _zipjar_deps = []
+  if (defined(invoker.zipjar_deps)) {
+    _zipjar_deps += invoker.zipjar_deps
+  }
+
+  foreach(dep_item, _zipjar_deps) {
+    _dep_name = get_label_info(dep_item, "name")
+    _dep_gen_dir = get_label_info(dep_item, "target_gen_dir")
+    _input_zips += [ "$_dep_gen_dir/$_dep_name.zipjar" ]
+  }
+
+  zipzip(target_name) {
+    forward_variables_from(invoker, [ "deps" ])
+    if (!defined(deps)) {
+      deps = []
+    }
+
+    input_zips = _input_zips
+    output = invoker.output
+
+    deps += _zipjar_deps
+  }
+}
+
+template("zipjar_prebuilt") {
+  set_sources_assignment_filter([])
+  forward_variables_from(invoker, [ "testonly" ])
+
+  _zipjar_path = "$target_gen_dir/$target_name.zipjar"
+  if (defined(invoker.zipjar_path)) {
+    _zipjar_path = invoker.zipjar_path
+  }
+  _base_dir = "$target_gen_dir/$target_name/zipjar_prebuilt"
+
+  action(target_name) {
+    forward_variables_from(invoker,
+                           [
+                             "deps",
+                             "jar_path",
+                           ])
+
+    script = "//build/android/gn/zipjar_prebuilt.py"
+    depfile = "$target_gen_dir/$target_name.d"
+
+    outputs = [
+      depfile,
+      _zipjar_path,
+    ]
+
+    args = [
+      "--depfile",
+      rebase_path(depfile, root_build_dir),
+      "--zipjar-path",
+      rebase_path(_zipjar_path, root_build_dir),
+      "--jar-path",
+      rebase_path(jar_path, root_build_dir),
+      "--base-dir",
+      rebase_path(_base_dir, root_build_dir),
+    ]
+  }
+}
+
 template("compile_java") {
   set_sources_assignment_filter([])
   forward_variables_from(invoker, [ "testonly" ])
@@ -847,6 +918,7 @@ template("java_library_impl") {
   if (defined(invoker.jar_path)) {
     _jar_path = invoker.jar_path
   }
+  _zipjar_path = "$target_gen_dir/$target_name.zipjar"
 
   _template_name = target_name
   _final_deps = []
@@ -914,6 +986,19 @@ template("java_library_impl") {
   }
   assert(_java_files != [] || _srcjar_deps != [] || _srcjars != [])
 
+  _zipjar_deps = []
+  if (defined(invoker.zipjar_deps)) {
+    _zipjar_deps += invoker.zipjar_deps
+  }
+
+  _zipjar_target = "${_template_name}__zipjar"
+  zipjar(_zipjar_target) {
+    forward_variables_from(invoker, [ "deps" ])
+
+    zipjar_deps = _zipjar_deps
+    output = _zipjar_path
+  }
+
   _compile_java_target = "${_template_name}__compile_java"
   _final_deps += [ ":$_compile_java_target" ]
   compile_java(_compile_java_target) {
@@ -935,7 +1020,7 @@ template("java_library_impl") {
     srcjars = _srcjars
     supports_android = _supports_android
 
-    deps = build_config_deps
+    deps = [ ":$_zipjar_target" ] + build_config_deps
   }
 
   if (defined(invoker.main_class)) {
@@ -994,6 +1079,7 @@ template("java_prebuilt_impl") {
   _base_path = "$target_gen_dir/$target_name"
   _target_dir_name = get_label_info("$target_name", "dir")
   _jar_path = "$root_out_dir/lib.java$_target_dir_name/$target_name.jar"
+  _zipjar_path = "$target_gen_dir/$target_name.zipjar"
   _ijar_path =
       "$root_out_dir/lib.java$_target_dir_name/$target_name.interface.jar"
   _build_config = _base_path + ".build_config"
@@ -1033,6 +1119,14 @@ template("java_prebuilt_impl") {
     }
   }
 
+  _zipjar_prebuilt_target_name = "${_template_name}__zipjar_prebuilt"
+  zipjar_prebuilt(_zipjar_prebuilt_target_name) {
+    jar_path = invoker.jar_path
+    zipjar_path = _zipjar_path
+
+    deps = _deps
+  }
+
   process_java_prebuilt(_process_jar_target_name) {
     visibility = [
       ":$_ijar_target_name",
@@ -1046,7 +1140,10 @@ template("java_prebuilt_impl") {
     input_jar_path = invoker.jar_path
     output_jar_path = _jar_path
 
-    deps = [ ":$_build_config_target_name" ] + _deps + _jar_deps
+    deps = [
+             ":$_build_config_target_name",
+             ":$_zipjar_prebuilt_target_name",
+           ] + _deps + _jar_deps
   }
 
   generate_interface_jar(_ijar_target_name) {

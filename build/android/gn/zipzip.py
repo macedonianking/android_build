@@ -7,11 +7,11 @@ from util import build_utils
 
 
 def create_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="zip.py")
+    parser = argparse.ArgumentParser(prog="zipzip.py")
     parser.add_argument("--depfile")
     parser.add_argument("--inputs")
     parser.add_argument("--output")
-    parser.add_argument("--base-dir", default=".")
+    parser.add_argument("--base-dir")
     return parser
 
 
@@ -21,7 +21,13 @@ def main(argv):
 
     inputs = build_utils.parse_gyp_list(args.inputs)
     output = args.output
-    build_utils.do_zip(inputs, output, args.base_dir)
+    build_utils.remove_subtree(args.base_dir)
+    build_utils.make_directory(args.base_dir)
+    for path in inputs:
+        build_utils.extract_all(path, base_dir=args.base_dir)
+
+    zip_files = build_utils.find_in_directory(args.base_dir, "*")
+    build_utils.do_zip(zip_files, output, args.base_dir)
 
     if args.depfile:
         build_utils.write_dep_file(args.depfile,

@@ -40,6 +40,14 @@ android_native_libraries("main_native_libraries") {
   ]
 }
 
+zip("main_java_zipjar") {
+  inputs = [
+    "java/com/android/main/build/MainActivity.config",
+  ]
+  output = "$target_gen_dir/$target_name.zipjar"
+  base_dir = "java"
+}
+
 android_library("main_java") {
   deps = [
     ":main_java_res",
@@ -48,14 +56,15 @@ android_library("main_java") {
     "//src/android/platform:platform_java",
   ]
   srcjar_deps = [ ":book_aidl" ]
+  zipjar_deps = [ ":main_java_zipjar" ]
 
   supports_android = true
   requires_android = true
 
   java_files = [
-    "./java/com/android/main/build/MainActivity.java",
-    "./java/com/android/main/build/util/Views.java",
-    "./java/com/android/main/build/entity/Book.java",
+    "java/com/android/main/build/MainActivity.java",
+    "java/com/android/main/build/util/Views.java",
+    "java/com/android/main/build/entity/Book.java",
   ]
 }
 
@@ -69,6 +78,7 @@ android_apk("content_shell_apk") {
   ]
 
   enable_multidex = true
+  enable_cpplib = true
 
   # proguard_enabled = true
   # proguard_configs = [

@@ -1,12 +1,11 @@
 # Create a zip archive of the inputs
 #
-# inputs (required)
+# variables:
+#   inputs(required):
 #     List of input files relative to the current directory.
-#
-# output (required)
+#   output(required):
 #     File name to write
-#
-# base dir (optional)
+#   base dir(required):
 template("zip") {
   action(target_name) {
     script = "//build/android/gn/zip.py"
@@ -36,6 +35,44 @@ template("zip") {
         rebase_path(invoker.base_dir, root_build_dir),
       ]
     }
+    forward_variables_from(invoker,
+                           [
+                             "test_only",
+                             "deps",
+                             "public_deps",
+                             "data_deps",
+                             "visibility",
+                           ])
+  }
+}
+
+template("zipzip") {
+  action(target_name) {
+    script = "//build/android/gn/zipzip.py"
+    depfile = "$target_gen_dir/$target_name.d"
+
+    inputs = []
+    inputs += invoker.input_zips
+
+    outputs = [
+      depfile,
+      invoker.output,
+    ]
+
+    _base_dir = "$target_gen_dir/$target_name/zipzip"
+    rebased_input_zips = rebase_path(invoker.input_zips, root_build_dir)
+    rebased_output = rebase_path(invoker.output, root_build_dir)
+
+    args = [
+      "--depfile",
+      rebase_path(depfile, root_build_dir),
+      "--output",
+      rebased_output,
+      "--inputs=$rebased_input_zips",
+      "--base-dir",
+      rebase_path(_base_dir, root_build_dir),
+    ]
+
     forward_variables_from(invoker,
                            [
                              "test_only",

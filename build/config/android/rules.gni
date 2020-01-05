@@ -410,6 +410,206 @@ template("android_java_prebuilt") {
   }
 }
 
+# Generate .java files from .aidl files.
+#
+# This target will store the .java file in a srcjar and should be included in
+# an android_library or android_apk's srcjar_deps.
+#
+# Variables
+#   sources: Paths to .aidl files to compile.
+#   import_include: Path to directory containing .java files imported by the
+#     .aidl files.
+#   interface_file: Preprocessed aile file to import.
+#
+# Example
+#   android_aile("foo_aidl") {
+#     import_include = "java/src"
+#     sources = [
+#       "java/src/com/foo/bar/FooBarService.aild",
+#       "java/src/com/foo/bar/FooBarServiceCallback.aidl",
+#     ]
+#   }
+template("android_aidl") {
+  set_sources_assignment_filter([])
+  forward_variables_from(invoker, [ "testonly" ])
+
+  srcjar_path = "${target_gen_dir}/${target_name}.srcjar"
+  aidl_path = "${android_sdk_build_tools}/aidl${host_executable_suffix}"
+  framework_aidl = "$android_sdk/framework.aidl"
+
+  action(target_name) {
+    script = "//build/android/gn/aidl.py"
+    sources = invoker.sources
+
+    _base_dir = "${target_gen_dir}/$target_name/android_aidl"
+
+    imports = [ framework_aidl ]
+    if (defined(invoker.interface_file)) {
+      assert(invoker.interface_file != "")
+      imports += [ invoker.interface_file ]
+    }
+
+    inputs = [ aidl_path ] + imports
+
+    depfile = "${target_gen_dir}/${target_name}.d"
+    outputs = [
+      depfile,
+      srcjar_path,
+    ]
+    rebased_imports = rebase_path(imports, root_build_dir)
+    args = [
+      "--depfile",
+      rebase_path(depfile, root_build_dir),
+      "--aidl-path",
+      rebase_path(aidl_path, root_build_dir),
+      "--imports=$rebased_imports",
+      "--srcjar",
+      rebase_path(srcjar_path, root_build_dir),
+      "--base-dir",
+      rebase_path(_base_dir, root_build_dir),
+    ]
+    if (defined(invoker.import_include) && invoker.import_include != "") {
+      rebased_import_includes =
+          rebase_path([ invoker.import_include ], root_build_dir)
+      args += [ "--includes=$rebased_import_includes" ]
+
+      _java_file_build_rel =
+          exec_script("//build/android/gn/find.py",
+                      [ rebase_path(invoker.import_include, root_build_dir) ],
+                      "list lines")
+      _java_files = rebase_path(_java_file_build_rel, ".", root_build_dir)
+      inputs += _java_files
+    }
+    args += rebase_path(sources, root_build_dir)
+  }
+}
+
+# Compile a protobuf buffer to java.
+#
+# This generates java files from protobuf buffers and creates an Android library
+# containing the classes.
+#
+# Variables
+#   sources: Paths to .proto files to compile.
+#   proto_path: Root directory of .proto files.
+#
+# Example:
+#   proto_java_library("foo_proto_java") {
+#     proto_path = "src/foo"
+#     sources = [ "$proto_path/foo.proto" ]
+#   }
+template("proto_java_library") {
+  set_sources_assignment_filter([])
+  forward_variables_from(invoker, [ "testonly" ])
+
+  _protoc_dep = "//third_party/android_protobuf:android_protoc($host_toolchain)"
+  _protoc_bin = get_label_info(_protoc_dep, "root_out_dir") + "/" +
+                get_label_info(_protoc_dep, "name") + host_executable_suffix
+  _proto_path = invoker.proto_path
+
+  _template_name = target_name
+
+  _protoc_target_name = "${_template_name}__protoc_java"
+  action(_protoc_target_name) {
+    srcjar_path = "$target_gen_dir/$target_name.srcjar"
+    script = "//build/android/gn/protoc_java.py"
+
+    _base_dir = "$target_gen_dir/$target_name/proto_java_library"
+
+    deps = [
+      _protoc_dep,
+    ]
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+
+    sources = invoker.sources
+    depfile = "$target_gen_dir/$target_name.d"
+    outputs = [
+      depfile,
+      srcjar_path,
+    ]
+
+    args = [
+             "--depfile",
+             rebase_path(depfile, root_build_dir),
+             "--protoc",
+             rebase_path(_protoc_bin, root_build_dir),
+             "--proto-path",
+             rebase_path(_proto_path, root_build_dir),
+             "--srcjar",
+             rebase_path(srcjar_path, root_build_dir),
+             "--base-dir",
+             rebase_path(_base_dir, root_build_dir),
+           ] + rebase_path(sources, root_build_dir)
+  }
+
+  android_library(target_name) {
+    java_files = []
+    srcjar_deps = [ ":$_protoc_target_name" ]
+    deps = [
+      "//third_party/android_protobuf:protobuf_nano_javalib",
+    ]
+  }
+}
+
+template("android_native_libraries") {
+  _build_config = "$target_gen_dir/$target_name.build_config"
+
+  _deps = []
+  if (defined(invoker.deps)) {
+    _deps += invoker.deps
+  }
+
+  _final_deps = []
+  src_libs = []
+
+  _srclib_deps = []
+  if (defined(invoker.srclib_deps)) {
+    _srclib_deps += invoker.srclib_deps
+    foreach(dep, invoker.srclib_deps) {
+      dep_name = get_label_info(dep, "name")
+      src_libs += [ "$root_shlib_dir/lib${dep_name}.so" ]
+    }
+  }
+
+  if (defined(invoker.native_libs)) {
+    src_libs += invoker.native_libs
+  }
+  assert(src_libs != [])
+
+  libs_dir = "$target_out_dir/$target_name/libs"
+  _native_libs =
+      process_file_template(src_libs, "$libs_dir/{{source_file_part}}")
+
+  prepare_target_name = "${target_name}__android_native_libraries__prepare"
+  copy(prepare_target_name) {
+    deps = _srclib_deps + _deps
+
+    sources = src_libs
+    outputs = [
+      "$libs_dir/{{source_file_part}}",
+    ]
+  }
+  _final_deps += [ ":${prepare_target_name}" ]
+
+  build_config_target_name = "${target_name}__build_config"
+  write_build_config(build_config_target_name) {
+    type = "android_native_libraries"
+    build_config = _build_config
+
+    deps = [
+      ":${prepare_target_name}",
+    ]
+    native_libs = _native_libs
+  }
+  _final_deps += [ ":${build_config_target_name}" ]
+
+  group(target_name) {
+    public_deps = _final_deps
+  }
+}
+
 # Declare an Android apk target.
 #
 # This target creates an Android APK containing java code, resources, assets,
@@ -423,6 +623,7 @@ template("android_java_prebuilt") {
 #   android_manifet: Path to AndroidManifest.xml
 #   android_manifet_dep: Target that generate AdnroidManifest (if applicable)
 #   data_deps:
+#   enable_cpplib(optional): Add libc++_shared.so to native libs.
 template("android_apk") {
   set_sources_assignment_filter([])
   forward_variables_from(invoker, [ "testonly" ])
@@ -473,7 +674,6 @@ template("android_apk") {
     _version_name = invoker.version_name
   }
 
-  # 秘钥信息
   _keystore_path = android_keystore_path
   _keystore_name = android_keystore_name
   _keystore_password = android_keystore_password
@@ -483,8 +683,10 @@ template("android_apk") {
     _srcjar_deps += invoker.srcjar_deps
   }
 
-  _native_libs += [ "$root_shlib_dir/libc++_shared.so" ]
-  _native_libs_deps += [ "//build/android:cpplib" ]
+  if (defined(invoker.enable_cpplib) && invoker.enable_cpplib) {
+    _native_libs += [ "$root_shlib_dir/libc++_shared.so" ]
+    _native_libs_deps += [ "//build/android:cpplib" ]
+  }
 
   if (defined(invoker.native_libs) && invoker.native_libs != []) {
     # allow native libs to be in the form "foo.so","foo.cr.so"
@@ -725,214 +927,12 @@ template("android_apk") {
     native_libs_filearg = _native_libs_file_arg
   }
 
-  not_needed([ "_final_deps" ])
-
   group(target_name) {
     forward_variables_from(invoker,
                            [
                              "data",
                              "data_deps",
                            ])
-    public_deps = _final_deps
-  }
-}
-
-# Generate .java files from .aidl files.
-#
-# This target will store the .java file in a srcjar and should be included in
-# an android_library or android_apk's srcjar_deps.
-#
-# Variables
-#   sources: Paths to .aidl files to compile.
-#   import_include: Path to directory containing .java files imported by the
-#     .aidl files.
-#   interface_file: Preprocessed aile file to import.
-#
-# Example
-#   android_aile("foo_aidl") {
-#     import_include = "java/src"
-#     sources = [
-#       "java/src/com/foo/bar/FooBarService.aild",
-#       "java/src/com/foo/bar/FooBarServiceCallback.aidl",
-#     ]
-#   }
-template("android_aidl") {
-  set_sources_assignment_filter([])
-  forward_variables_from(invoker, [ "testonly" ])
-
-  srcjar_path = "${target_gen_dir}/${target_name}.srcjar"
-  aidl_path = "${android_sdk_build_tools}/aidl${host_executable_suffix}"
-  framework_aidl = "$android_sdk/framework.aidl"
-
-  action(target_name) {
-    script = "//build/android/gn/aidl.py"
-    sources = invoker.sources
-
-    _base_dir = "${target_gen_dir}/$target_name/android_aidl"
-
-    imports = [ framework_aidl ]
-    if (defined(invoker.interface_file)) {
-      assert(invoker.interface_file != "")
-      imports += [ invoker.interface_file ]
-    }
-
-    inputs = [ aidl_path ] + imports
-
-    depfile = "${target_gen_dir}/${target_name}.d"
-    outputs = [
-      depfile,
-      srcjar_path,
-    ]
-    rebased_imports = rebase_path(imports, root_build_dir)
-    args = [
-      "--depfile",
-      rebase_path(depfile, root_build_dir),
-      "--aidl-path",
-      rebase_path(aidl_path, root_build_dir),
-      "--imports=$rebased_imports",
-      "--srcjar",
-      rebase_path(srcjar_path, root_build_dir),
-      "--base-dir",
-      rebase_path(_base_dir, root_build_dir),
-    ]
-    if (defined(invoker.import_include) && invoker.import_include != "") {
-      rebased_import_includes =
-          rebase_path([ invoker.import_include ], root_build_dir)
-      args += [ "--includes=$rebased_import_includes" ]
-
-      _java_file_build_rel =
-          exec_script("//build/android/gn/find.py",
-                      [ rebase_path(invoker.import_include, root_build_dir) ],
-                      "list lines")
-      _java_files = rebase_path(_java_file_build_rel, ".", root_build_dir)
-      inputs += _java_files
-    }
-    args += rebase_path(sources, root_build_dir)
-  }
-}
-
-# Compile a protobuf buffer to java.
-#
-# This generates java files from protobuf buffers and creates an Android library
-# containing the classes.
-#
-# Variables
-#   sources: Paths to .proto files to compile.
-#   proto_path: Root directory of .proto files.
-#
-# Example:
-#   proto_java_library("foo_proto_java") {
-#     proto_path = "src/foo"
-#     sources = [ "$proto_path/foo.proto" ]
-#   }
-template("proto_java_library") {
-  set_sources_assignment_filter([])
-  forward_variables_from(invoker, [ "testonly" ])
-
-  _protoc_dep = "//third_party/android_protobuf:android_protoc($host_toolchain)"
-  _protoc_bin = get_label_info(_protoc_dep, "root_out_dir") + "/" +
-                get_label_info(_protoc_dep, "name") + host_executable_suffix
-  _proto_path = invoker.proto_path
-
-  _template_name = target_name
-
-  _protoc_target_name = "${_template_name}__protoc_java"
-  action(_protoc_target_name) {
-    srcjar_path = "$target_gen_dir/$target_name.srcjar"
-    script = "//build/android/gn/protoc_java.py"
-
-    _base_dir = "$target_gen_dir/$target_name/proto_java_library"
-
-    deps = [
-      _protoc_dep,
-    ]
-    if (defined(invoker.deps)) {
-      deps += invoker.deps
-    }
-
-    sources = invoker.sources
-    depfile = "$target_gen_dir/$target_name.d"
-    outputs = [
-      depfile,
-      srcjar_path,
-    ]
-
-    args = [
-             "--depfile",
-             rebase_path(depfile, root_build_dir),
-             "--protoc",
-             rebase_path(_protoc_bin, root_build_dir),
-             "--proto-path",
-             rebase_path(_proto_path, root_build_dir),
-             "--srcjar",
-             rebase_path(srcjar_path, root_build_dir),
-             "--base-dir",
-             rebase_path(_base_dir, root_build_dir),
-           ] + rebase_path(sources, root_build_dir)
-  }
-
-  android_library(target_name) {
-    java_files = []
-    srcjar_deps = [ ":$_protoc_target_name" ]
-    deps = [
-      "//third_party/android_protobuf:protobuf_nano_javalib",
-    ]
-  }
-}
-
-template("android_native_libraries") {
-  _build_config = "$target_gen_dir/$target_name.build_config"
-
-  _deps = []
-  if (defined(invoker.deps)) {
-    _deps += invoker.deps
-  }
-
-  _final_deps = []
-  src_libs = []
-
-  _srclib_deps = []
-  if (defined(invoker.srclib_deps)) {
-    _srclib_deps += invoker.srclib_deps
-    foreach(dep, invoker.srclib_deps) {
-      dep_name = get_label_info(dep, "name")
-      src_libs += [ "$root_shlib_dir/lib${dep_name}.so" ]
-    }
-  }
-
-  if (defined(invoker.native_libs)) {
-    src_libs += invoker.native_libs
-  }
-  assert(src_libs != [])
-
-  libs_dir = "$target_out_dir/$target_name/libs"
-  _native_libs =
-      process_file_template(src_libs, "$libs_dir/{{source_file_part}}")
-
-  prepare_target_name = "${target_name}__android_native_libraries__prepare"
-  copy(prepare_target_name) {
-    deps = _srclib_deps + _deps
-
-    sources = src_libs
-    outputs = [
-      "$libs_dir/{{source_file_part}}",
-    ]
-  }
-  _final_deps += [ ":${prepare_target_name}" ]
-
-  build_config_target_name = "${target_name}__build_config"
-  write_build_config(build_config_target_name) {
-    type = "android_native_libraries"
-    build_config = _build_config
-
-    deps = [
-      ":${prepare_target_name}",
-    ]
-    native_libs = _native_libs
-  }
-  _final_deps += [ ":${build_config_target_name}" ]
-
-  group(target_name) {
     public_deps = _final_deps
   }
 }
