@@ -31,19 +31,32 @@ def parse_args(argv):
 def main(argv):
     args = parse_args(argv)
 
+    input_paths = []
+    output_paths = []
+    input_strings = []
+
     inputs = args.inputs
+    input_paths.extend(inputs)
     output = args.output
-    build_utils.remove_subtree(args.base_dir)
-    build_utils.make_directory(args.base_dir)
-    for path in inputs:
-        build_utils.extract_all(path, base_dir=args.base_dir)
+    output_paths.append(output)
 
-    zip_files = build_utils.find_in_directory(args.base_dir, "*")
-    build_utils.do_zip(zip_files, output, args.base_dir)
+    input_strings.append(args.base_dir )
 
-    if args.depfile:
-        build_utils.write_dep_file(args.depfile,
-                                   build_utils.get_python_dependencies())
+    def on_stale_md5():
+        build_utils.remove_subtree(args.base_dir)
+        build_utils.make_directory(args.base_dir)
+        for path in inputs:
+            build_utils.extract_all(path, base_dir=args.base_dir)
+
+        zip_files = build_utils.find_in_directory(args.base_dir, "*")
+        build_utils.do_zip(zip_files, output, args.base_dir)
+        pass
+
+    build_utils.call_and_write_dep_file_if_stale(on_stale_md5,
+                                                 args,
+                                                 input_strings=input_strings,
+                                                 input_paths=input_paths,
+                                                 output_paths=output_paths)
     pass
 
 

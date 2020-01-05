@@ -325,21 +325,19 @@ def call_and_write_dep_file_if_stale(function,
 
 
 def do_zip(inputs, output, base_dir=None):
-    input_paths = []
+    input_tuples = []
     for item in inputs:
         if isinstance(item, str):
-            # 单独的路径
-            archive_name = os.path.relpath(item, base_dir)
-            archive_name = archive_name.replace("\\", "/")
-            input_paths.append((archive_name, item))
+            zip_path = os.path.relpath(item, base_dir)
+            zip_path = zip_path.replace("\\", "/")
+            input_tuples.append((zip_path, item))
         else:
-            input_paths.append(item)
-    input_paths.sort(key=lambda x: x[0])
+            input_tuples.append(item)
 
+    input_tuples.sort(key=lambda x: x[0])
     with zipfile.ZipFile(output, mode="w") as zip_file:
-        for archive_name, path in input_paths:
-            zip_file.write(path, archive_name)
-        pass
+        for zip_path, path in input_tuples:
+            add_to_zip_hermetic(zip_file, zip_path, src_path=path)
     pass
 
 

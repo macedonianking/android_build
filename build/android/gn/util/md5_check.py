@@ -201,7 +201,7 @@ class Changes:
                 or self.old_metadata.strings_md5() != self.new_metadata.strings_md5()
                 or self.old_metadata.files_md5() != self.new_metadata.files_md5())
 
-    def added_or_modifed_only(self):
+    def added_or_modified_only(self):
         """仅仅是增加文件或者修改了文件
         """
         if (self.force

@@ -25,6 +25,20 @@ def parse_args():
 
 def main():
     args = parse_args()
+
+    input_strings = [args.base_dir]
+    input_paths = [args.jar_path]
+    output_paths = [args.zipjar_path]
+
+    build_utils.call_and_write_dep_file_if_stale(lambda: on_stale_md5(args),
+                                                 args,
+                                                 input_strings=input_strings,
+                                                 input_paths=input_paths,
+                                                 output_paths=output_paths)
+    pass
+
+
+def on_stale_md5(args):
     build_utils.remove_subtree(args.base_dir)
     build_utils.make_directory(args.base_dir)
 
@@ -41,11 +55,9 @@ def main():
                             predicate=predicate)
     zip_files = build_utils.find_in_directory(args.base_dir, "*")
     build_utils.do_zip(zip_files, args.zipjar_path, args.base_dir)
-
     if args.depfile:
         dep_files = build_utils.get_python_dependencies()
         build_utils.write_dep_file(args.depfile, dep_files)
-    pass
 
 
 if __name__ == '__main__':
