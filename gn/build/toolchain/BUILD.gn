@@ -1,4 +1,4 @@
-import("//build/toolchain/gcc_toolchain.gni")
+import("//gn/build/toolchain/gcc_toolchain.gni")
 
 gcc_toolchain("mingw") {
   cc = "gcc"

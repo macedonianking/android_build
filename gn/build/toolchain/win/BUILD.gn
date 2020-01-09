@@ -1,4 +1,4 @@
-import("//build/toolchain/gcc_toolchain.gni")
+import("//gn/build/toolchain/gcc_toolchain.gni")
 
 template("gcc_toolchain_helper") {
   assert(defined(invoker.toolchain_cpu))

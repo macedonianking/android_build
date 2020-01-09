@@ -1,4 +1,4 @@
-import("//build/config/android/maven_internal_rules.gni")
+import("//gn/build/config/android/maven_internal_rules.gni")
 
 # Declare a target for build an andorid aar archive.
 #

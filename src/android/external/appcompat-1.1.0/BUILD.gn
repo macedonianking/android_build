@@ -1,6 +1,6 @@
-import("//build/config/android/config.gni")
-import("//build/config/android/internal_rules.gni")
-import("//build/config/android/rules.gni")
+import("//gn/build/config/android/config.gni")
+import("//gn/build/config/android/internal_rules.gni")
+import("//gn/build/config/android/rules.gni")
 
 android_resources("appcompat_resources") {
   deps = [

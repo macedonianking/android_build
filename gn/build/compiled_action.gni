@@ -27,7 +27,7 @@ template("compiled_action") {
       inputs = []
     }
 
-    script = "//build/gn_run_binary.py"
+    script = "//gn/build/gn_run_binary.py"
 
     host_tool = invoker.tool + "($host_toolchain)"
     host_executable =

@@ -1,5 +1,5 @@
-import("//build/config/android/config.gni")
-import("//build/config/zip.gni")
+import("//gn/build/config/android/config.gni")
+import("//gn/build/config/zip.gni")
 import("//third_party/ijar/ijar.gni")
 
 assert(is_android)
@@ -35,7 +35,7 @@ template("java_binary_script") {
   _script_name = invoker.script_name
 
   action(target_name) {
-    script = "//build/android/gn/create_java_binary_script.py"
+    script = "//gn/build/android/gn/create_java_binary_script.py"
     depfile = "$target_gen_dir/$target_name.d"
     java_script = "$root_build_dir/bin/$_script_name.py"
 
@@ -96,7 +96,7 @@ template("proguard") {
                              "public_deps",
                              "testonly",
                            ])
-    script = "//build/android/gn/proguard.py"
+    script = "//gn/build/android/gn/proguard.py"
     _proguard_jar_path = "//third_party/proguard/proguard-base-6.2.0.jar"
     _output_jar_path = invoker.output_jar_path
     inputs = [
@@ -159,7 +159,7 @@ template("write_build_config") {
       deps = []
     }
 
-    script = "//build/android/gn/write_build_config.py"
+    script = "//gn/build/android/gn/write_build_config.py"
     depfile = "$target_gen_dir/$target_name.d"
     sources = []
     inputs = []
@@ -365,7 +365,7 @@ template("process_resources") {
                              "deps",
                              "visibility",
                            ])
-    script = "//build/android/gn/process_resources.py"
+    script = "//gn/build/android/gn/process_resources.py"
 
     depfile = "$target_gen_dir/$target_name.d"
     outputs = [
@@ -380,7 +380,7 @@ template("process_resources") {
     if (defined(invoker.resource_dirs)) {
       _all_resource_dirs += invoker.resource_dirs
       sources_build_rel =
-          exec_script("//build/android/gn/find.py",
+          exec_script("//gn/build/android/gn/find.py",
                       rebase_path(_all_resource_dirs, root_build_dir),
                       "list lines")
       sources += rebase_path(sources_build_rel, ".", root_build_dir)
@@ -600,7 +600,7 @@ template("zipjar_prebuilt") {
                              "jar_path",
                            ])
 
-    script = "//build/android/gn/zipjar_prebuilt.py"
+    script = "//gn/build/android/gn/zipjar_prebuilt.py"
     depfile = "$target_gen_dir/$target_name.d"
 
     outputs = [
@@ -689,7 +689,7 @@ template("compile_java") {
              ])
 
   action(_javac_target_name) {
-    script = "//build/android/gn/javac.py"
+    script = "//gn/build/android/gn/javac.py"
     depfile = "$target_gen_dir/$target_name.d"
     deps = _srcjar_deps
     if (defined(invoker.deps)) {
@@ -801,12 +801,12 @@ template("dex") {
                                "testonly",
                              ])
 
-      script = "//build/android/gn/main_dex_list.py"
+      script = "//gn/build/android/gn/main_dex_list.py"
       depfile = "${target_gen_dir}/${target_name}.d"
 
       _base_dir = "${target_gen_dir}/$target_name/dex"
 
-      main_dex_rules = "//build/android/gn/main_dex_classes.flags"
+      main_dex_rules = "//gn/build/android/gn/main_dex_classes.flags"
       _proguard_jar_path = "//third_party/proguard/proguard-base-6.2.0.jar"
 
       outputs = [
@@ -859,7 +859,7 @@ template("dex") {
                              "sources",
                              "testonly",
                            ])
-    script = "//build/android/gn/dex.py"
+    script = "//gn/build/android/gn/dex.py"
     depfile = "$target_gen_dir/$target_name.d"
     outputs = [
       depfile,
@@ -1274,7 +1274,7 @@ template("package_apk") {
       _native_lib_placeholders = invoker.native_lib_placeholders
     }
 
-    script = "//build/android/gn/apkbuilder.py"
+    script = "//gn/build/android/gn/apkbuilder.py"
     depfile = "$target_gen_dir/$target_name.d"
 
     # data_deps = [
@@ -1370,7 +1370,7 @@ template("package_apk") {
 template("finalize_apk") {
   action(target_name) {
     deps = []
-    script = "//build/android/gn/finalize_apk.py"
+    script = "//gn/build/android/gn/finalize_apk.py"
     depfile = "$target_gen_dir/$target_name.d"
     forward_variables_from(invoker,
                            [
@@ -1414,7 +1414,7 @@ template("finalize_apk") {
       rebase_path(_base_dir, root_build_dir),
     ]
     if (defined(invoker.rezip_apk) && invoker.rezip_apk) {
-      deps += [ "//build/android/rezip:rezip" ]
+      deps += [ "//gn/build/android/rezip:rezip" ]
       _rezip_jar_path = "$root_build_dir/lib.jar/rezip_apk.jar"
       args += [
         "--load-library-from-zip=1",
@@ -1524,7 +1524,7 @@ template("create_apk") {
     action(target_name) {
       deps = invoker.deps
 
-      script = "//build/android/gn/package_resources.py"
+      script = "//gn/build/android/gn/package_resources.py"
       depfile = "$target_gen_dir/$target_name.d"
       inputs = [
         invoker.android_manifest,

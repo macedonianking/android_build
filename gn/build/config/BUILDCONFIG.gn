@@ -1,4 +1,4 @@
-import("//build/config/config.gni")
+import("//gn/build/config/config.gni")
 
 if (target_os == "") {
   target_os = host_os
@@ -32,11 +32,11 @@ declare_args() {
 # 设置运行系统使用的工具链
 if (host_toolchain == "") {
   if (host_os == "win") {
-    host_toolchain = "//build/config/toolchain/win:$host_cpu"
+    host_toolchain = "//gn/build/config/toolchain/win:$host_cpu"
   } else if (host_os == "linux") {
-    host_toolchain = "//build/config/toolchain/linux:$host_cpu"
+    host_toolchain = "//gn/build/config/toolchain/linux:$host_cpu"
   } else if (host_os == "mac") {
-    host_toolchain = "//build/config/toolchain/mac:$host_cpu"
+    host_toolchain = "//gn/build/config/toolchain/mac:$host_cpu"
   } else {
     assert(false, "Unsupported host_os: $host_os")
   }
@@ -45,19 +45,19 @@ _default_toolchain = ""
 
 if (target_os == "android") {
   assert(host_os == "linux" || host_os == "mac" || host_os == "win")
-  _default_toolchain = "//build/toolchain/android:clang_$target_cpu"
+  _default_toolchain = "//gn/build/toolchain/android:clang_$target_cpu"
 } else if (target_os == "win") {
-  _default_toolchain = "//build/toolchain/win:$target_cpu"
+  _default_toolchain = "//gn/build/toolchain/win:$target_cpu"
 } else if (target_os == "linux") {
-  _default_toolchain = "//build/toolchain/linux:$target_cpu"
+  _default_toolchain = "//gn/build/toolchain/linux:$target_cpu"
 } else {
   assert(false, "Unsupported target_os: $target_os")
 }
 
 if (host_os == "win") {
-  host_toolchain = "//build/toolchain/win:$host_cpu"
+  host_toolchain = "//gn/build/toolchain/win:$host_cpu"
 } else if (host_os == "linux") {
-  host_toolchain = "//build/toolchain/linux:$host_cpu"
+  host_toolchain = "//gn/build/toolchain/linux:$host_cpu"
 } else {
   assert(false, "Platform not supported")
 }
@@ -100,7 +100,7 @@ if (current_os == "android") {
   assert(false, "Unsupported current_os: $current_os")
 }
 
-import("//build/config/config.gni")
+import("//gn/build/config/config.gni")
 
 # ====================================================================================
 # SOURCES FILTERS
@@ -152,24 +152,24 @@ if (!is_android) {
 # TARGETS DEFAULTS
 # ====================================================================================
 
-_native_compiler_configs = [ "//build/config/compiler:compiler" ]
+_native_compiler_configs = [ "//gn/build/config/compiler:compiler" ]
 
 if (is_debug) {
-  _native_compiler_configs += [ "//build/config:debug" ]
+  _native_compiler_configs += [ "//gn/build/config:debug" ]
 } else {
-  _native_compiler_configs += [ "//build/config:release" ]
+  _native_compiler_configs += [ "//gn/build/config:release" ]
 }
 
 _executable_configs =
-    _native_compiler_configs + [ "//build/config:default_libs" ]
+    _native_compiler_configs + [ "//gn/build/config:default_libs" ]
 
 set_defaults("executable") {
   configs = _executable_configs
 }
 
 _shared_library_configs = _native_compiler_configs + [
-                            "//build/config:default_libs",
-                            "//build/config:shared_library_config",
+                            "//gn/build/config:default_libs",
+                            "//gn/build/config:shared_library_config",
                           ]
 
 set_defaults("shared_library") {

@@ -8,13 +8,13 @@ config("compiler") {
   configs = []
 
   if (is_win) {
-    configs += [ "//build/config/win:compiler" ]
+    configs += [ "//gn/build/config/win:compiler" ]
   } else if (is_android) {
-    configs += [ "//build/config/android:compiler" ]
+    configs += [ "//gn/build/config/android:compiler" ]
   } else if (is_linux) {
-    configs += [ "//build/config/linux:compiler" ]
+    configs += [ "//gn/build/config/linux:compiler" ]
   } else if (is_mac) {
-    configs += [ "//build/config/mac:compiler" ]
+    configs += [ "//gn/build/config/mac:compiler" ]
   }
 
   cflags_c += [ "-std=gnu11" ]

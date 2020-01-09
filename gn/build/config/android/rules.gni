@@ -1,7 +1,7 @@
-import("//build/config/android/config.gni")
-import("//build/config/android/internal_rules.gni")
-import("//build/config/zip.gni")
-import("//build/toolchain/toolchain.gni")
+import("//gn/build/config/android/config.gni")
+import("//gn/build/config/android/internal_rules.gni")
+import("//gn/build/config/zip.gni")
+import("//gn/build/toolchain/toolchain.gni")
 
 # Declare a target for processing a Jinja template.
 #
@@ -29,7 +29,7 @@ template("jinja_template") {
     sources = [
       invoker.input,
     ]
-    script = "//build/android/gn/jinja_template.py"
+    script = "//gn/build/android/gn/jinja_template.py"
     depfile = "$target_gen_dir/$target_name.d"
 
     outputs = [
@@ -80,7 +80,7 @@ template("java_cpp_template") {
                              "data_deps",
                              "public_deps",
                            ])
-    script = "//build/android/gn/gcc_preprocesses.py"
+    script = "//gn/build/android/gn/gcc_preprocesses.py"
     if (defined(invoker.inputs)) {
       inputs = invoker.inputs
     }
@@ -156,7 +156,7 @@ template("jinja_template_resources") {
 
   action(jinja_template_target_name) {
     sources = invoker.resources
-    script = "//build/android/gn/jinja_template.py"
+    script = "//gn/build/android/gn/jinja_template.py"
     depfile = "$target_gen_dir/$target_name.d"
 
     outputs = [
@@ -438,7 +438,7 @@ template("android_aidl") {
   framework_aidl = "$android_sdk/framework.aidl"
 
   action(target_name) {
-    script = "//build/android/gn/aidl.py"
+    script = "//gn/build/android/gn/aidl.py"
     sources = invoker.sources
 
     _base_dir = "${target_gen_dir}/$target_name/android_aidl"
@@ -474,7 +474,7 @@ template("android_aidl") {
       args += [ "--includes=$rebased_import_includes" ]
 
       _java_file_build_rel =
-          exec_script("//build/android/gn/find.py",
+          exec_script("//gn/build/android/gn/find.py",
                       [ rebase_path(invoker.import_include, root_build_dir) ],
                       "list lines")
       _java_files = rebase_path(_java_file_build_rel, ".", root_build_dir)
@@ -512,7 +512,7 @@ template("proto_java_library") {
   _protoc_target_name = "${_template_name}__protoc_java"
   action(_protoc_target_name) {
     srcjar_path = "$target_gen_dir/$target_name.srcjar"
-    script = "//build/android/gn/protoc_java.py"
+    script = "//gn/build/android/gn/protoc_java.py"
 
     _base_dir = "$target_gen_dir/$target_name/proto_java_library"
 
@@ -692,7 +692,7 @@ template("android_apk") {
 
   if (defined(invoker.enable_cpplib) && invoker.enable_cpplib) {
     _native_libs += [ "$root_shlib_dir/libc++_shared.so" ]
-    _native_libs_deps += [ "//build/android:cpplib" ]
+    _native_libs_deps += [ "//gn/build/android:cpplib" ]
   }
 
   if (defined(invoker.native_libs) && invoker.native_libs != []) {
@@ -781,7 +781,7 @@ template("android_apk") {
     srcjar_path = "${target_gen_dir}/$target_name.srcjar"
     r_text_path = "${target_gen_dir}/${target_name}_R.txt"
     android_manifest = _android_manifest
-    resource_dirs = [ "//build/android/gn/empty/res" ]
+    resource_dirs = [ "//gn/build/android/gn/empty/res" ]
     zip_path = resources_zip_path
     all_resources_zip_path = _all_resources_zip_path
     generate_constant_ids = true

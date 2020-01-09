@@ -12,7 +12,7 @@ if (is_android) {
   }
 
   if (!defined(default_android_keystore_path)) {
-    default_android_keystore_path = "//build/android/gn/android.jks"
+    default_android_keystore_path = "//gn/build/android/gn/android.jks"
     default_android_keystore_name = "androidkey"
     default_android_keystore_password = "android"
   }
@@ -107,7 +107,7 @@ if (is_android) {
   android_tool_prefix = "$android_toolchain_root/bin/${_binary_prefix}/bin/"
 
   if (current_cpu == "arm") {
-    import("//build/config/arm.gni")
+    import("//gn/build/config/arm.gni")
     if (arm_version < 7) {
       android_app_abi = "armeabi"
     } else {

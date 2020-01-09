@@ -1,6 +1,6 @@
-import("//build/config/android/config.gni")
-import("//build/config/android/internal_rules.gni")
-import("//build/config/android/rules.gni")
+import("//gn/build/config/android/config.gni")
+import("//gn/build/config/android/internal_rules.gni")
+import("//gn/build/config/android/rules.gni")
 
 # inputs:
 #   json_path
@@ -67,7 +67,7 @@ template("process_android_aar") {
 
   _json_path = _base_path + ".json"
 
-  exec_script("//build/android/gn/generate_aar_targets.py",
+  exec_script("//gn/build/android/gn/generate_aar_targets.py",
               [
                 "--name",
                 _template_name,
@@ -144,7 +144,7 @@ template("process_android_maven") {
     ]
   }
 
-  exec_script("//build/android/gn/maven_download.py",
+  exec_script("//gn/build/android/gn/maven_download.py",
               [
                     "--m2-dir",
                     "../src/m2",
@@ -203,7 +203,7 @@ template("process_android_maven_depends") {
   }
 
   dep_config =
-      exec_script("//build/android/gn/process_android_maven_depends.py",
+      exec_script("//gn/build/android/gn/process_android_maven_depends.py",
                   _args_list,
                   "json")
   java_group(target_name) {

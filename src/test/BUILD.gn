@@ -1,5 +1,5 @@
 action("main") {
-  script = "//build/android/gn/test_action.py"
+  script = "//gn/build/android/gn/test_action.py"
   depfile = "$target_gen_dir/$target_name.d"
 
   input_txt = "main.txt"

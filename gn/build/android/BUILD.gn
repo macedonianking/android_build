@@ -1,5 +1,5 @@
-import("//build/config/android/config.gni")
-import("//build/toolchain/toolchain.gni")
+import("//gn/build/config/android/config.gni")
+import("//gn/build/toolchain/toolchain.gni")
 
 copy("cpplib") {
   _soname = "libc++_shared.so"

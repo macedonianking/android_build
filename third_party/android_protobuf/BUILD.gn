@@ -24,8 +24,8 @@ if (current_toolchain == host_toolchain) {
 }
 
 if (current_os == "android") {
-  import("//build/config/android/config.gni")
-  import("//build/config/android/rules.gni")
+  import("//gn/build/config/android/config.gni")
+  import("//gn/build/config/android/rules.gni")
 
   android_java_prebuilt("protobuf_nano_javalib") {
     jar_path = "protobuf-java-3.11.0.jar"

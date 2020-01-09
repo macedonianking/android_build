@@ -12,7 +12,7 @@ template("download_action") {
                              "testonly",
                              "inputs",
                            ])
-    script = "//build/gn_download.py"
+    script = "//gn/build/gn_download.py"
 
     outputs = [
       invoker.output,

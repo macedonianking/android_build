@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import codecs
 import argparse
+import codecs
 import os
-import sys
+
 import jinja2
 
 import host_paths
@@ -70,24 +70,25 @@ def create_parser():
                         help='The template files to process.')
     parser.add_argument('--output',
                         help='The output file to generate. Valid '
-                        'only if there is a single input.')
+                             'only if there is a single input.')
     parser.add_argument('--outputs-zip',
                         help='A zip file containing the processed '
-                        'templates. Required if there are multiple inputs.')
+                             'templates. Required if there are multiple inputs.')
     parser.add_argument('--inputs-base-dir',
                         help='A common ancestor directory of '
-                        'the inputs. Each output\'s path in the output zip will '
-                        'match the relative path from INPUTS_BASE_DIR to the '
-                        'input. Required if --output-zip is given.')
-    parser.add_argument('--loader-base-dir', help='Base path used by the template '
-                        'loader. Must be a common ancestor directory of '
-                        'the inputs. Defaults to DIR_SOURCE_ROOT.',
+                             'the inputs. Each output\'s path in the output zip will '
+                             'match the relative path from INPUTS_BASE_DIR to the '
+                             'input. Required if --output-zip is given.')
+    parser.add_argument('--loader-base-dir',
+                        help='Base path used by the template '
+                             'loader. Must be a common ancestor directory of '
+                             'the inputs. Defaults to DIR_SOURCE_ROOT.',
                         default=host_paths.DIR_SOURCE_ROOT)
     parser.add_argument('--variables',
                         default='',
                         help='Variables to be made available in the '
-                        'template processing environment, as a GYP list (e.g. '
-                        '--variables "channel=beta mstone=39")')
+                             'template processing environment, as a GYP list (e.g. '
+                             '--variables "channel=beta mstone=39")')
     return parser
 
 

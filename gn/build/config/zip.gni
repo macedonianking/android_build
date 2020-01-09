@@ -8,7 +8,7 @@
 #   base dir(required):
 template("zip") {
   action(target_name) {
-    script = "//build/android/gn/zip.py"
+    script = "//gn/build/android/gn/zip.py"
     depfile = "$target_gen_dir/$target_name.d"
     inputs = invoker.inputs
 
@@ -48,7 +48,7 @@ template("zip") {
 
 template("zipzip") {
   action(target_name) {
-    script = "//build/android/gn/zipzip.py"
+    script = "//gn/build/android/gn/zipzip.py"
     depfile = "$target_gen_dir/$target_name.d"
 
     inputs = []

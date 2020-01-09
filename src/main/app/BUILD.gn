@@ -3,7 +3,7 @@ executable("main") {
     "src/main.c",
   ]
 
-  configs -= [ "//build/config:debug" ]
+  configs -= [ "//gn/build/config:debug" ]
 
   cflags_c = [
     "-Wall",

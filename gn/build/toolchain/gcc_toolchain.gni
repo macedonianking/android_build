@@ -1,4 +1,4 @@
-import("//build/toolchain/toolchain.gni")
+import("//gn/build/toolchain/toolchain.gni")
 
 template("gcc_toolchain") {
   assert(defined(invoker.cc))
@@ -76,7 +76,7 @@ template("gcc_toolchain") {
 
     tool("alink") {
       ar_wrapper =
-          rebase_path("//build/toolchain/gcc_ar_wrapper.py", root_build_dir)
+          rebase_path("//gn/build/toolchain/gcc_ar_wrapper.py", root_build_dir)
 
       rspfile = "{{output}}.rsp"
       command =
