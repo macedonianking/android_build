@@ -25,22 +25,29 @@ if (current_cpu == "") {
 
 declare_args() {
   is_debug = true
+
   host_toolchain = ""
+
   custom_toolchain = ""
 }
+
+# ====================================================================================
+# TOOLCHAIN SETUP
+# ====================================================================================
 
 # 设置运行系统使用的工具链
 if (host_toolchain == "") {
   if (host_os == "win") {
-    host_toolchain = "//gn/build/config/toolchain/win:$host_cpu"
+    host_toolchain = "//gn/build/toolchain/win:$host_cpu"
   } else if (host_os == "linux") {
-    host_toolchain = "//gn/build/config/toolchain/linux:$host_cpu"
+    host_toolchain = "//gn/build/toolchain/linux:$host_cpu"
   } else if (host_os == "mac") {
-    host_toolchain = "//gn/build/config/toolchain/mac:$host_cpu"
+    host_toolchain = "//gn/build/toolchain/mac:$host_cpu"
   } else {
     assert(false, "Unsupported host_os: $host_os")
   }
 }
+
 _default_toolchain = ""
 
 if (target_os == "android") {
@@ -52,14 +59,6 @@ if (target_os == "android") {
   _default_toolchain = "//gn/build/toolchain/linux:$target_cpu"
 } else {
   assert(false, "Unsupported target_os: $target_os")
-}
-
-if (host_os == "win") {
-  host_toolchain = "//gn/build/toolchain/win:$host_cpu"
-} else if (host_os == "linux") {
-  host_toolchain = "//gn/build/toolchain/linux:$host_cpu"
-} else {
-  assert(false, "Platform not supported")
 }
 
 if (custom_toolchain != "") {
@@ -107,12 +106,13 @@ import("//gn/build/config/config.gni")
 # ====================================================================================
 
 sources_assignment_filster = []
+
 if (!is_posix) {
   sources_assignment_filster += [
     "*_posix.h",
     "*_posix.c",
     "*_posix.cc",
-    "\bposix/*",
+    "*\bposix/*",
   ]
 }
 if (!is_linux) {
@@ -120,7 +120,7 @@ if (!is_linux) {
     "*_linux.h",
     "*_linux.c",
     "*_linux.cc",
-    "\blinux/*",
+    "*\blinux/*",
   ]
 }
 if (!is_win) {
@@ -128,7 +128,7 @@ if (!is_win) {
     "*_win.h",
     "*_win.c",
     "*_win.cc",
-    "\bwin/*",
+    "*\bwin/*",
   ]
 }
 if (!is_mac) {
@@ -136,7 +136,7 @@ if (!is_mac) {
     "*_mac.h",
     "*_mac.c",
     "*_mac.cc",
-    "\bmac/*",
+    "*\bmac/*",
   ]
 }
 if (!is_android) {
@@ -144,15 +144,21 @@ if (!is_android) {
     "*_android.h",
     "*_android.c",
     "*_android.cc",
-    "\bandroid/*",
+    "*\bandroid/*",
   ]
 }
+
+set_sources_assignment_filter(sources_assignment_filster)
 
 # ====================================================================================
 # TARGETS DEFAULTS
 # ====================================================================================
 
-_native_compiler_configs = [ "//gn/build/config/compiler:compiler" ]
+_native_compiler_configs = [
+  "//gn/build/config:feature_flags",
+  "//gn/build/config/compiler:compiler",
+  "//gn/build/config/compiler:default_include_dirs",
+]
 
 if (is_debug) {
   _native_compiler_configs += [ "//gn/build/config:debug" ]

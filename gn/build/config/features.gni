@@ -1,0 +1,7 @@
+declare_args() {
+  # Declare how many cpus on the system.
+  nr_cpu = 8
+
+  # Declare whether enable pdf.
+  enable_pdf = false
+}

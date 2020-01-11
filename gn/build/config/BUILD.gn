@@ -1,3 +1,15 @@
+import("//gn/build/config/features.gni")
+
+config("feature_flags") {
+  defines = []
+
+  defines += [ "NR_CPU=$nr_cpu" ]
+
+  if (enable_pdf) {
+    defines += [ "ENABLE_PDF=1" ]
+  }
+}
+
 config("debug") {
   defines = [ "_DEBUG" ]
   cflags = [ "-g" ]
@@ -10,7 +22,6 @@ config("release") {
 config("default_libs") {
   libs = []
 
-  libs += [ "stdc++" ]
   if (is_android) {
     libs += [
       "dl",

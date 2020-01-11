@@ -1,4 +1,16 @@
+import("//gn/build/config/compiler/compiler.gni")
+
+# default include directories.
+config("default_include_dirs") {
+  include_dirs = [
+    "//",
+    root_gen_dir,
+  ]
+}
+
+# compilers
 config("compiler") {
+  asmflags = []
   cflags = []
   cflags_c = []
   cflags_cc = []
@@ -17,6 +29,8 @@ config("compiler") {
     configs += [ "//gn/build/config/mac:compiler" ]
   }
 
+  configs += [ ":compiler_cpu_abi" ]
+
   cflags_c += [ "-std=gnu11" ]
   cflags_cc += [ "-std=c++0x" ]
 
@@ -27,4 +41,26 @@ config("compiler") {
     ]
     ldflags += [ "-fPIC" ]
   }
+}
+
+config("compiler_cpu_abi") {
+  cflags = []
+  ldflags = []
+
+  if (is_posix && !is_mac) {
+    if (current_cpu == "x64") {
+      cflags += [
+        "-m64",
+        "-march=x86-64",
+      ]
+      ldflags += [ "-m64" ]
+    } else if (current_cpu == "x86") {
+      cflags += [
+        "-m32",
+        "-m32",
+      ]
+    }
+  }
+
+  asmflags = cflags
 }

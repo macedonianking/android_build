@@ -1,5 +1,5 @@
 import("//gn/build/config/android/config.gni")
 
 config("compiler") {
-  defines = [ "OS=ANDROID" ]
+  defines = [ "ANDROID" ]
 }
