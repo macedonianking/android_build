@@ -3,11 +3,13 @@ executable("main") {
     "src/main.c",
   ]
 
-  configs -= [ "//gn/build/config:debug" ]
-
-  cflags_c = [
+  cflags = [
     "-Wall",
     "-Werror",
   ]
   include_dirs = [ "src" ]
+
+  deps = [
+    "//src/main/hello_shared:hello_shared",
+  ]
 }

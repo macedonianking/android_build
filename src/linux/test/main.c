@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "util/test_list.h"
+
 int main(int argc, char const *argv[])
 {
-    // printf("hello world!!!\n");
+    test_list();
+
     return 0;
 }

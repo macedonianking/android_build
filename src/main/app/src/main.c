@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "hello.h"
+
 int main(int argc, char const *argv[])
 {
-    printf("hello world!!!\n");
+    hello_world_shared();
     return 0;
 }

@@ -10,3 +10,4 @@
 /ninja_build/main/out
 /ninja_build/main/.ninja_log
 /ninja_build/main/.ninja_deps
+/.vscode

@@ -27,4 +27,6 @@ if (is_posix) {
   executable_extension = ""
 } else if (is_win) {
   executable_extension = ".exe"
+} else {
+  assert("Platform not supported")
 }

@@ -8,5 +8,7 @@ group("main") {
       "android:main",
       "java/main:main_demo_java",
     ]
+  } else if (target_os == "win") {
+    deps += [ "linux:main" ]
   }
 }

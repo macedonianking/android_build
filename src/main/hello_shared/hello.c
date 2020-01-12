@@ -5,5 +5,5 @@
 
 void hello_world_shared()
 {
-    printf("shared: Hello world!!!\n");
+    printf("Hello world from shared!!!\n");
 }

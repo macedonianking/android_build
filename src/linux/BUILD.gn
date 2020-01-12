@@ -1,0 +1,33 @@
+config("linux_config") {
+  include_dirs = [ "src" ]
+}
+
+executable("linux") {
+  c_sources_rel = exec_script("//gn/build/android/gn/find_directories.py",
+                              [
+                                rebase_path("src", root_build_dir),
+                                "--include-pattern",
+                                "*.c",
+                              ],
+                              "list lines")
+  c_sources = rebase_path(c_sources_rel, ".", root_build_dir)
+
+  sources = c_sources
+
+  configs += [ ":linux_config" ]
+}
+
+static_library("test_linux") {
+  sources = [
+    "src/main.c",
+  ]
+
+  public_configs = [ ":linux_config" ]
+}
+
+group("main") {
+  deps = [
+    ":linux",
+    "test:test_linux",
+  ]
+}

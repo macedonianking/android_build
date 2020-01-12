@@ -17,6 +17,7 @@ template("gcc_toolchain") {
   } else {
     rebuild_define = ""
   }
+
   if (defined(invoker.toolchain_target)) {
     toolchain_target = invoker.toolchain_target
   } else {
@@ -46,7 +47,7 @@ template("gcc_toolchain") {
   toolchain(target_name) {
     tool("cc") {
       depfile = "{{output}}.d"
-      command = "\"$cc\" $toolchain_target -MMD -MF $depfile -c {{cflags}} {{cflags_c}} ${rebuild_define}{{defines}} {{include_dirs}} {{source}} -o {{output}}"
+      command = "\"$cc\" $toolchain_target -MMD -MF $depfile -c {{cflags}} {{cflags_c}} ${rebuild_define}{{defines}} {{include_dirs}} -o {{output}} {{source}} "
       depsformat = "gcc"
       outputs = [
         "{{source_out_dir}}/{{label_name}}_cc_{{source_name_part}}.o",
@@ -56,7 +57,7 @@ template("gcc_toolchain") {
 
     tool("cxx") {
       depfile = "{{output}}.d"
-      command = "\"$cxx\" $toolchain_target -MMD -MF {{output}}.d -c {{cflags}} {{cflags_c}} ${rebuild_define}{{defines}} {{include_dirs}} {{source}} -o {{output}}"
+      command = "\"$cxx\" $toolchain_target -MMD -MF $depfile -c {{cflags}} {{cflags_cc}} ${rebuild_define}{{defines}} {{include_dirs}} -o {{output}} {{source}}"
       depsformat = "gcc"
       outputs = [
         "{{source_out_dir}}/{{label_name}}_cxx_{{source_name_part}}.o",
@@ -66,10 +67,10 @@ template("gcc_toolchain") {
 
     tool("asm") {
       depfile = "{{output}}.d"
-      command = "\"$cc\" $toolchain_target -MMD -MF $depfile -c {{asmflags}} ${rebuild_define}{{defines}} {{include_dirs}} {{source}} -o {{output}}"
+      command = "\"$cc\" $toolchain_target -MMD -MF $depfile -c {{asmflags}} ${rebuild_define}{{defines}} {{include_dirs}} -o {{output}} {{source}}"
       depsformat = "gcc"
       outputs = [
-        "{{source_out_dir}}/{{label_name}}_cc_{{source_name_part}}.o",
+        "{{source_out_dir}}/{{label_name}}_asm_{{source_name_part}}.o",
       ]
       description = "ASM {{source}}"
     }
@@ -99,7 +100,7 @@ template("gcc_toolchain") {
       rspfile_content = "{{inputs}} {{solibs}} {{libs}}"
       rspfile = "{{output}}.rsp"
 
-      command = "\"$ld\" $toolchain_target -shared -Wl,-soname=$soname {{ldflags}} -o {{output}} @$rspfile"
+      command = "\"$ld\" $toolchain_target {{ldflags}} -shared -Wl,-soname=$soname -o {{output}} @$rspfile"
       description = "SOLINK {{label}}"
       outputs = [
         sofile,
@@ -116,16 +117,18 @@ template("gcc_toolchain") {
 
     tool("link") {
       exe_file = "{{output_dir}}/{{target_output_name}}{{output_extension}}"
-      rspfile = exe_file + ".rsp"
+      rspfile = "${exe_file}.rsp"
       ld_library_path = rebase_path(root_out_dir)
 
-      rspfile_content = "{{inputs}} {{solibs}} {{libs}}"
-      command = "\"$ld\" $toolchain_target {{ldflags}} -Wl,-rpath,$ld_library_path -o {{output}} @$rspfile"
+      rspfile_content =
+          "-Wl,--start-group {{inputs}} {{solibs}} -Wl,--end-group {{libs}}"
+      command = "\"$ld\" $toolchain_target {{ldflags}} -o {{output}} -Wl,-rpath,$ld_library_path @$rspfile"
       outputs = [
         exe_file,
       ]
       description = "LINK {{label}}"
 
+      restat = true
       default_output_dir = "{{root_out_dir}}"
       default_output_extension = default_executable_extension
     }

@@ -1,0 +1,4 @@
+#ifndef LINUX_SRC_COFNIG_CONFIG_H
+#define LINUX_SRC_COFNIG_CONFIG_H
+
+#endif
