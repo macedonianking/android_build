@@ -19,7 +19,6 @@ template("gcc_toolchain_helper") {
     ar = "ar"
 
     executable_extension = ".exe"
-    arlib_extension = ".a"
     shlib_extension = ".dll"
   }
 }

@@ -12,4 +12,5 @@ executable("test_linux") {
   deps = [
     "//src/linux:test_linux",
   ]
+  include_dirs = [ "src" ]
 }

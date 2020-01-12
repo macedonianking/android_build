@@ -4,14 +4,6 @@ template("gcc_toolchain") {
   assert(defined(invoker.cc))
   assert(defined(invoker.cxx))
 
-  not_needed(invoker,
-             "*",
-             [
-               "cc",
-               "cxx",
-               "ld",
-             ])
-
   if (defined(invoker.rebuild_define)) {
     rebuild_define = "-D" + invoker.rebuild_define + " "
   } else {
@@ -96,11 +88,15 @@ template("gcc_toolchain") {
     tool("solink") {
       soname = "{{target_output_name}}{{output_extension}}"
       sofile = "{{output_dir}}/$soname"
+      tocfile = "$sofile.TOC"
 
-      rspfile_content = "{{inputs}} {{solibs}} {{libs}}"
-      rspfile = "{{output}}.rsp"
+      rspfile_content = "-Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}}"
+      rspfile = "$sofile.rsp"
 
-      command = "\"$ld\" $toolchain_target {{ldflags}} -shared -Wl,-soname=$soname -o {{output}} @$rspfile"
+      link_command = "\"$ld\" $toolchain_target {{ldflags}} -shared -Wl,-soname=$soname -o $sofile @$rspfile"
+      solink_wrapper = rebase_path("//gn/build/toolchain/gcc_solink_wrapper.py")
+      command = "$python_path $solink_wrapper --sofile \"$sofile\" --tocfile \"$tocfile\" -- $link_command"
+
       description = "SOLINK {{label}}"
       outputs = [
         sofile,

@@ -1,16 +1,15 @@
 # -*- encoding: utf-8 -*-
 
 import re
-
-from string import Template
+import argparse
 
 
 def main():
-    _library_pattern = re.compile(".*?\\[(?P<library_name>.+)\\]")
-    sources = "SHARED LIBRARY [libhello.so]\nSHARED LIBRARY [libfoo.so]"
-    for pat in _library_pattern.finditer(sources):
-        print(pat.group(1))
-        pass
+    parser = argparse.ArgumentParser(prog="test")
+    parser.add_argument("-a", nargs="+", default=[])
+    args = parser.parse_args(["-a", "a", "b"])
+    print(args.a)
+    pass
 
 
 if __name__ == "__main__":

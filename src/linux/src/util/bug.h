@@ -8,16 +8,16 @@
 
 #define BUG_FATAL()             \
     do                          \
-    ({                          \
+    {                           \
         *(int *)0 = 0xbeadbeef; \
-    }) while (0)
+    } while (0)
 
 #define BUG_ON(condition)                              \
     do                                                 \
     {                                                  \
         if (condition)                                 \
         {                                              \
-            printk("FATAL: BUG_ON("##condition ")\n"); \
+            printk("FATAL: BUG_ON(" #condition ")\n"); \
             flushk();                                  \
             BUG_FATAL();                               \
         }                                              \

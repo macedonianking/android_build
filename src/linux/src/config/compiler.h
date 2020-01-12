@@ -3,4 +3,9 @@
 
 #define unused __attribute__((unused))
 
+#define barrier() asm volatile("" \
+                               :  \
+                               :  \
+                               : "memory")
+
 #endif

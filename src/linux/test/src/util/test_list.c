@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "util/list.h"
+#include "util/bug.h"
 
 struct test_entry
 {
@@ -35,17 +36,24 @@ void test_list()
     LIST_HEAD(entry_list);
     struct test_entry *ptr;
     struct list_head *pos;
+    int dst_total, src_total;
 
     printf("test_list:\n");
 
+    src_total = 0;
     for (int i = 0; i < 100; ++i)
     {
         ptr = create_test_entry(i);
+        src_total += ptr->value;
+
         list_add_tail(&ptr->list, &entry_list);
     }
 
+    dst_total = 0;
     list_for_each_entry(ptr, pos, &entry_list, list)
-        printf("%d\n", ptr->value);
+    {
+        dst_total += ptr->value;
+    }
 
     while (!list_empty(&entry_list))
     {
@@ -54,4 +62,6 @@ void test_list()
         list_del_init(&ptr->list);
         free_test_entry(ptr);
     }
+
+    BUG_ON(src_total != dst_total);
 }

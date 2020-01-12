@@ -6,10 +6,8 @@ if (shlib_subdir != ".") {
 }
 
 if (is_posix) {
-  arlib_extension = ".a"
   shlib_extension = ".so"
 } else if (is_win) {
-  arlib_extension = ".a"
   shlib_extension = ".dll"
 } else {
   assert("Platform not supported")
