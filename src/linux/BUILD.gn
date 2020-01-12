@@ -13,16 +13,27 @@ executable("linux") {
   c_sources = rebase_path(c_sources_rel, ".", root_build_dir)
 
   sources = c_sources
-
-  configs += [ ":linux_config" ]
+  configs += [
+    ":linux_config",
+    "//gn/build/config/compiler:warning",
+  ]
 }
 
 static_library("test_linux") {
-  sources = [
-    "src/main.c",
-  ]
+  c_sources_rel = exec_script("//gn/build/android/gn/find_directories.py",
+                              [
+                                rebase_path("src", root_build_dir),
+                                "--include-pattern",
+                                "*.c",
+                              ],
+                              "list lines")
+  c_sources = rebase_path(c_sources_rel, ".", root_build_dir)
 
-  public_configs = [ ":linux_config" ]
+  sources = c_sources
+  public_configs = [
+    ":linux_config",
+    "//gn/build/config/compiler:warning",
+  ]
 }
 
 group("main") {

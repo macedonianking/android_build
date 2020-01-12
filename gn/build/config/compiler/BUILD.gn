@@ -8,6 +8,14 @@ config("default_include_dirs") {
   ]
 }
 
+config("warning") {
+  configs = []
+
+  if (is_win) {
+    configs += [ "//gn/build/config/win:warning" ]
+  }
+}
+
 # compilers
 config("compiler") {
   asmflags = []

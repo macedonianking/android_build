@@ -1,2 +1,9 @@
 config("compiler") {
 }
+
+config("warning") {
+  cflags = [
+    "-Wall",
+    "-Werror",
+  ]
+}

@@ -1,7 +1,7 @@
 executable("test_linux") {
   c_sources_rel = exec_script("//gn/build/android/gn/find_directories.py",
                               [
-                                rebase_path(".", root_build_dir),
+                                rebase_path("src", root_build_dir),
                                 "--include-pattern",
                                 "*.c",
                               ],
