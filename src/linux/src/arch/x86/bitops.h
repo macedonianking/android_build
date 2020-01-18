@@ -32,4 +32,9 @@ static inline int test_and_set_bit(int nr, unsigned long *addr)
     return r;
 }
 
+extern int find_first_bit(const unsigned long *addr, int size);
+extern int find_next_bit(const unsigned long *addr, int size, int offset);
+extern int find_first_zero_bit(const unsigned long *addr, int size);
+extern int find_next_zero_bit(const unsigned long *addr, int size, int offset);
+
 #endif
