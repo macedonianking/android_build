@@ -1,38 +1,88 @@
 config("linux_config") {
   include_dirs = [ "src" ]
+
+  configs = [ "//gn/build/config/compiler:warning" ]
+}
+
+action("copy_arch") {
+  script = "//src/linux/build/copy_arch.py"
+  depfile = "$target_gen_dir/$target_name.d"
+
+  outputs = [
+    depfile,
+  ]
+
+  asm_dir = "$target_gen_dir/copy_arch/asm"
+
+  args = [
+    "--depfile",
+    rebase_path(depfile, root_build_dir),
+    "--arch-dir",
+    rebase_path("src/arch", root_build_dir),
+    "--cpu-arch",
+    "x86",
+    "--output-dir",
+    rebase_path(asm_dir, root_build_dir),
+  ]
+}
+
+static_library("arch_linux") {
+  c_sources_rel = exec_script("//gn/build/android/gn/find_directories.py",
+                              [
+                                "--include-pattern",
+                                "src/arch/x86/*.c",
+                                "--current-directory",
+                                rebase_path(".", root_build_dir),
+                                rebase_path("src/arch/x86", root_build_dir),
+                              ],
+                              "list lines")
+  c_sources = rebase_path(c_sources_rel, ".", root_build_dir)
+
+  sources = c_sources
+  configs += [ ":linux_config" ]
+}
+
+static_library("static_linux") {
+  c_sources_rel = exec_script("//gn/build/android/gn/find_directories.py",
+                              [
+                                rebase_path("src", root_build_dir),
+                                "--include-pattern",
+                                "*.c",
+                                "--exclude-pattern",
+                                "src/arch/*.c",
+                                "--exclude-pattern",
+                                "src/main/*.c",
+                                "--current-directory",
+                                rebase_path(".", root_build_dir),
+                              ],
+                              "list lines")
+  c_sources = rebase_path(c_sources_rel, ".", root_build_dir)
+
+  sources = c_sources
+  configs += [ ":linux_config" ]
+  deps = [
+    ":arch_linux",
+    ":copy_arch",
+  ]
+  include_dirs = [ "$target_gen_dir/copy_arch" ]
 }
 
 executable("linux") {
   c_sources_rel = exec_script("//gn/build/android/gn/find_directories.py",
                               [
-                                rebase_path("src", root_build_dir),
                                 "--include-pattern",
-                                "*.c",
+                                "src/main/*.c",
+                                "--current-directory",
+                                rebase_path(".", root_build_dir),
+                                rebase_path("src", root_build_dir),
                               ],
                               "list lines")
   c_sources = rebase_path(c_sources_rel, ".", root_build_dir)
 
   sources = c_sources
-  configs += [
-    ":linux_config",
-    "//gn/build/config/compiler:warning",
-  ]
-}
-
-static_library("test_linux") {
-  c_sources_rel = exec_script("//gn/build/android/gn/find_directories.py",
-                              [
-                                rebase_path("src", root_build_dir),
-                                "--include-pattern",
-                                "*.c",
-                              ],
-                              "list lines")
-  c_sources = rebase_path(c_sources_rel, ".", root_build_dir)
-
-  sources = c_sources
-  public_configs = [
-    ":linux_config",
-    "//gn/build/config/compiler:warning",
+  configs += [ ":linux_config" ]
+  deps = [
+    ":static_linux",
   ]
 }
 

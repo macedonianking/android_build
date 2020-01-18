@@ -11,6 +11,8 @@ def create_parser():
                         action="append")
     parser.add_argument("-e", "--exclude-pattern",
                         action="append")
+    parser.add_argument("-c", "--current-directory",
+                        help="The pattern current directory.")
     parser.add_argument("dirs", nargs="+")
     return parser
 
@@ -41,6 +43,9 @@ def main():
     args = parse_args()
 
     def predicate(filename):
+        if args.current_directory:
+            filename = os.path.relpath(filename, args.current_directory)
+
         if args.include_pattern and not match_glob(filename, args.include_pattern):
             return False
         if args.exclude_pattern and match_glob(filename, args.exclude_pattern):
