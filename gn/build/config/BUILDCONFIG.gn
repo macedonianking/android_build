@@ -57,6 +57,8 @@ if (target_os == "android") {
   _default_toolchain = "//gn/build/toolchain/win:$target_cpu"
 } else if (target_os == "linux") {
   _default_toolchain = "//gn/build/toolchain/linux:$target_cpu"
+} else if (target_os == "mac") {
+  _default_toolchain = "//gn/build/toolchain/mac:$target_cpu"
 } else {
   assert(false, "Unsupported target_os: $target_os")
 }

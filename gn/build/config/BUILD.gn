@@ -32,5 +32,4 @@ config("default_libs") {
 
 config("shared_library_config") {
   cflags = [ "-fPIC" ]
-  ldflags = [ "-shared" ]
 }

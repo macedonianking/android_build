@@ -1,0 +1,148 @@
+import("//gn/build/toolchain/toolchain.gni")
+
+template("gcc_toolchain") {
+  assert(defined(invoker.cc))
+  assert(defined(invoker.cxx))
+
+  if (defined(invoker.rebuild_define)) {
+    rebuild_define = "-D" + invoker.rebuild_define + " "
+  } else {
+    rebuild_define = ""
+  }
+
+  if (defined(invoker.toolchain_target)) {
+    toolchain_target = invoker.toolchain_target
+  } else {
+    toolchain_target = ""
+  }
+
+  cc = invoker.cc
+  cxx = invoker.cxx
+  ar = invoker.ar
+  ld = invoker.ld
+
+  if (defined(invoker.shlib_extension)) {
+    default_shlib_extension = invoker.shlib_extension
+  } else {
+    default_shlib_extension = shlib_extension
+  }
+
+  if (defined(invoker.executable_extension)) {
+    default_executable_extension = invoker.executable_extension
+  } else {
+    default_executable_extension = executable_extension
+  }
+
+  lib_switch = "-l"
+  lib_dir_switch = "-L"
+
+  toolchain(target_name) {
+    tool("cc") {
+      depfile = "{{output}}.d"
+      command = "\"$cc\" $toolchain_target -MMD -MF $depfile -c {{cflags}} {{cflags_c}} ${rebuild_define}{{defines}} {{include_dirs}} -o {{output}} {{source}} "
+      depsformat = "gcc"
+      outputs = [
+        "{{source_out_dir}}/{{label_name}}_cc_{{source_name_part}}.o",
+      ]
+      description = "CC {{source}}"
+    }
+
+    tool("cxx") {
+      depfile = "{{output}}.d"
+      command = "\"$cxx\" $toolchain_target -MMD -MF $depfile -c {{cflags}} {{cflags_cc}} ${rebuild_define}{{defines}} {{include_dirs}} -o {{output}} {{source}}"
+      depsformat = "gcc"
+      outputs = [
+        "{{source_out_dir}}/{{label_name}}_cxx_{{source_name_part}}.o",
+      ]
+      description = "CXX {{source}}"
+    }
+
+    tool("asm") {
+      depfile = "{{output}}.d"
+      command = "\"$cc\" $toolchain_target -MMD -MF $depfile -c {{asmflags}} ${rebuild_define}{{defines}} {{include_dirs}} -o {{output}} {{source}}"
+      depsformat = "gcc"
+      outputs = [
+        "{{source_out_dir}}/{{label_name}}_asm_{{source_name_part}}.o",
+      ]
+      description = "ASM {{source}}"
+    }
+
+    tool("alink") {
+      ar_wrapper =
+          rebase_path("//gn/build/toolchain/gcc_ar_wrapper.py", root_build_dir)
+
+      rspfile = "{{output}}.rsp"
+      command =
+          "$python_path $ar_wrapper --output={{output}} --ar=$ar rcsD @$rspfile"
+      outputs = [
+        "{{output_dir}}/{{target_output_name}}{{output_extension}}",
+      ]
+      rspfile_content = "{{inputs}}"
+      description = "ALINK {{label}}"
+
+      default_output_dir = "{{target_out_dir}}"
+      default_output_extension = ".a"
+      output_prefix = "lib"
+    }
+
+    tool("solink") {
+      soname = "{{target_output_name}}{{output_extension}}"
+      sofile = "{{output_dir}}/$soname"
+
+      rspfile_content = "{{inputs}} {{solibs}} {{libs}}"
+      rspfile = "$sofile.rsp"
+
+      command = "\"$ld\" $toolchain_target {{ldflags}} -shared -o $sofile @$rspfile"
+
+      description = "SOLINK {{label}}"
+      outputs = [
+        sofile,
+      ]
+
+      restat = true
+      default_output_dir = "{{root_out_dir}}"
+      if (shlib_subdir != ".") {
+        default_output_dir += "/$shlib_subdir"
+      }
+      default_output_extension = default_shlib_extension
+      output_prefix = "lib"
+    }
+
+    tool("link") {
+      exe_file = "{{output_dir}}/{{target_output_name}}{{output_extension}}"
+      rspfile = "${exe_file}.rsp"
+      ld_library_path = rebase_path(root_out_dir)
+
+      rspfile_content =
+          "{{inputs}} {{solibs}} {{libs}}"
+      command = "\"$ld\" $toolchain_target {{ldflags}} -o {{output}} -Wl,-rpath,$ld_library_path @$rspfile"
+      outputs = [
+        exe_file,
+      ]
+      description = "LINK {{label}}"
+
+      restat = true
+      default_output_dir = "{{root_out_dir}}"
+      default_output_extension = default_executable_extension
+    }
+
+    tool("stamp") {
+      command = "touch {{output}}"
+      description = "STAMP {{output}}"
+    }
+
+    tool("copy") {
+      command = "cp -rf {{source}} {{output}}"
+      description = "COPY {{label}}"
+    }
+
+    toolchain_args = {
+      current_cpu = invoker.toolchain_cpu
+      current_os = invoker.toolchain_os
+
+      host_toolchain = host_toolchain
+      target_cpu = target_cpu
+      target_os = target_os
+    }
+  }
+}

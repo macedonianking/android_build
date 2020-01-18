@@ -1,0 +1,34 @@
+import("//gn/build/toolchain/mac/gcc_toolchain.gni")
+
+template("gcc_toolchain_helper") {
+  assert(defined(invoker.toolchain_cpu))
+
+  forward_variables_from(invoker,
+                         [
+                           "toolchain_os",
+                           "toolchain_cpu",
+                         ])
+  if (!defined(toolchain_os)) {
+    toolchain_os = "win"
+  }
+
+  gcc_toolchain(target_name) {
+    cc = "gcc"
+    cxx = "g++"
+    ld = "gcc"
+    ar = "ar"
+
+    executable_extension = ""
+    shlib_extension = ".so"
+  }
+}
+
+gcc_toolchain_helper("x86") {
+  toolchain_os = "mac"
+  toolchain_cpu = "x86"
+}
+
+gcc_toolchain_helper("x64") {
+  toolchain_os = "mac"
+  toolchain_cpu = "x64"
+}
